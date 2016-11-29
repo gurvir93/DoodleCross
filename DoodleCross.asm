@@ -165,19 +165,21 @@ update_score:
 
 plotheart:	
 	JSR		randomizer
-	STA		$1D00
+	STA		$1D00		; Y Axis Value
 
 ;	CMP		#00
 ;	BEQ		plotheart
 ;	CMP		#01
 ;	BEQ		plotheart
 	JSR		randomizer
-	STA		$1D01
+	STA		$1D01		; X Axis Value
 	CMP		#$00
 	BEQ		plotheart
 	CMP		#01
 	BEQ 	plotheart
-	LDX		$1D00
+	LDX		$1D00	
+
+contplot:
 	TAY
 	CLC
 	JSR		PLOT

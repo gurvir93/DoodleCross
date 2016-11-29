@@ -270,6 +270,7 @@ clr:
 	
 	JMP 	plotheart
 
+; ============================= Start Random Generator =============================
 randomizer:
 	LDA		$0				; Get zero page value
 	ADC		.seed			; Add seed value to accumulator
@@ -287,7 +288,8 @@ randomizer:
 	
 	STA		$1D00
 	RTS
-	
+; ============================= End Random Generator =============================
+
 update_score:
 ;	JSR		playwinsound
 	JSR		jumptoinc
@@ -351,7 +353,7 @@ printcircle:
 	STA	162
 	JSR	WAIT2
 
-
+; ============================= Start Input =============================
 readinput:
 	JSR 	SCNKEY
 	JSR 	GETIN
@@ -417,11 +419,14 @@ movedown:
 
 	JSR		collsion
 	JMP		printcircle
-	
+; ============================= End Input =============================
+
+
 jumptoinc:
 	JSR		inc_score
 	RTS
-	
+
+; ============================= Start Score =============================
 printscore:
 	LDX		#0			; Y AXIS VALUE
 	LDY		#13			; X AXIS VALUE
@@ -505,6 +510,8 @@ printscoretext:
 	BNE		printscoretext 	; If not equal, branch to loop
 
 	RTS						; Return
+; ============================= End Score =============================
+
 
 	
 	
