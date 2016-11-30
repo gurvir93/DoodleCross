@@ -19,7 +19,6 @@ RIGHT	.equ	$1d 	;29
 LEFT	.equ	$9d 	;157
 UP		.equ	$91		;17
 DOWN	.equ	$11		;145
-CHKOUT	.equ	$FFC9	;address for kernal routine CHKOUT
 PLOT	.equ	$FFF0	;address for kernal routine PLOT
 
 CIRCLE	.equ	$51		;CHR$ code for circle
@@ -285,6 +284,27 @@ randomizer:
 	
 	STA		$1D00
 	RTS
+
+	; LDA		#0
+	; ADC		.seed
+	; ASL
+	; ASL
+	; CLC
+	; ADC		.seed
+	; CLC
+	; ADC		#23
+	; STA		.seed
+	; ASL
+	; ASL
+	; ASL
+	; ASL
+	; LSR
+	; LSR
+	; LSR
+	; LSR
+	
+	; STA		$1D00
+	; RTS
 ; ============================= End Random Generator =============================
 
 update_score:

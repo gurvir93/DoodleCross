@@ -3,6 +3,8 @@
 ; | KERNAL SUBROUTINES |
 ; ======================
 CHROUT		.equ	$FFD22	; Address for kernal routine CHROUT
+PLOT		.equ	$FFF0	; Address for kernal routine PLOT
+
 ; ====================
 ; | SYSTEM VARIABLES |
 ; ====================
@@ -15,6 +17,11 @@ RASTER		.equ	$9004	; Current raster count -- used to generate random number
 ; --- User Variables ---
 ENEMYSYM	.equ	$1D50
 POINTSYM	.equ	$1D15
+SCOREX		.equ	#13
+SCOREY		.equ	#0
+MAXSCREENX  .equ	#21
+MAXSCREENY	.equ	#22
+
 ; ----------------------
 
 ; --- Array of Objects ---
@@ -111,7 +118,7 @@ main:
 ; ------------------
 ;  || Memory Map ||
 ; ------------------
-; Score (3 bytes)
+; Score (5 bytes)
 ;	$1D00 - Hundreds
 ;	$1D01 - Tens
 ; 	$1D02 - Ones
@@ -180,7 +187,104 @@ main:
 ;	$1D31 - X coordinate
 ;	$1D32 - Y coordinate
 
-clearscreen:
+; 
+initializeArray:
+
+clearScreen:
 	LDA		#CLEAR
 	JSR		CHROUT
 
+; Screen refresh subroutine - uses A, X, and Y
+refreshScreen:
+
+	
+printScoreText:
+	LDX		SCOREY			; Y AXIS VALUE
+	LDY		SCOREX			; X AXIS VALUE
+	CLC						; Set carry bit - needed to call kernal routine PLOT
+	JSR		PLOT
+
+	LDX		#0
+	LDA		score,x			; Load specific byte x into accumulator
+	JSR		CHROUT  		; Jump to character out subroutine
+	INX						; Increment x
+	CPX		#6				; Compare x with total length of string going to be outputted
+	BNE		printScoreText 	; If not equal, branch to loop
+
+	RTS
+
+plotCurrentScore:
+
+plotItem:
+
+; ============================= Start Score =============================
+printScore:
+	LDX		#0
+	LDY		#0
+	JSR		storeIntoMemory
+	
+	LDA		#ZERO
+	JSR		CHROUT
+	JSR		CHROUT
+	RTS
+
+incScore:
+	JSR		loadFromMemory
+	JSR		scoreOnesPos
+	CPY		#9
+	BEQ		incScoreTens
+	INY
+	JSR		storeIntoMemory
+	TYA
+	ADC		#ZERO
+	JSR		CHROUT
+	JMP		plotheart
+	
+return:
+	RTS
+
+incScoreTens:
+	CPX		#9
+	BEQ		return
+	LDY		#0
+	TYA
+	ADC		#ZERO
+	JSR		CHROUT
+	INX
+	JSR		storeIntoMemory
+	JSR		scoreTensPos
+	TXA
+	ADC		#ZERO
+	JSR		CHROUT
+	JMP		plotheart
+
+storeIntoMemory:
+	STX		$1DFE
+	STY		$1DFF
+	RTS
+	
+loadFromMemory:
+	LDX		$1DFE
+	LDY		$1DFF
+	RTS
+
+scoreOnesPos:
+	JSR		storeIntoMemory
+	LDX		#0			; Y AXIS VALUE
+	LDY		#21			; X AXIS VALUE
+	CLC
+	JSR		PLOT
+	JSR		loadFromMemory
+	RTS
+	
+scoreTensPos:
+	JSR		storeIntoMemory
+	LDX		#0			; Y AXIS VALUE
+	LDY		#20			; X AXIS VALUE
+	CLC
+	JSR		PLOT
+	JSR		loadFromMemory
+	RTS
+
+score:
+	.byte	"SCORE:"
