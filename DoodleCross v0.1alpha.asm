@@ -251,15 +251,12 @@ startgame:
 ;	LDY	#0
 ;	STY		SNDCH1
 ;	RTS
-WAIT   LDA 162
-       CMP #5
-       BNE WAIT
-       RTS
-WAIT2   LDA 162
-       CMP #1
-       BNE WAIT
-       RTS
-;	   
+WAIT:
+	LDA 162
+    CMP #4
+    BNE WAIT
+    RTS
+
 clr: 
 	LDA 	#CLEAR
 	JSR		CHROUT
@@ -304,11 +301,6 @@ plotheart:
 	
 	JSR		randomizer
 	STA		$1D00
-
-;	CMP		#00
-;	BEQ		plotheart
-;	CMP		#01
-;	BEQ		plotheart
 	JSR		randomizer
 	STA		$1D01
 	CMP		#$00
@@ -318,6 +310,7 @@ plotheart:
 	LDY		$1D00
 	TAX
 	CLC
+
 	JSR		FINDCOLOURPOSITION		;COLOUR NEW HEART POSITION
 	LDA		#$AA
 	STA		$1D10
@@ -351,24 +344,42 @@ printcircle:
 	JSR		PLOTPOSITION
 	LDA	#0
 	STA	162
-	JSR	WAIT2
+	JSR	WAIT
 
 ; ============================= Start Input =============================
 readinput:
-	JSR 	SCNKEY
-	JSR 	GETIN
-	CMP 	#00
-	BEQ		readinput
-	CMP 	#RIGHT
-	BEQ 	moveright
-	CMP 	#LEFT
-	BEQ 	moveleft
-	CMP 	#UP
-	BEQ	 	moveup
-	CMP 	#DOWN
-	BEQ 	movedown
-	JMP 	readinput
-	RTS
+		LDA		#127
+		STA 	ddrb
+		CLC
+		LDA 	#00
+loop:	LDA 	outputrb
+		ASL		
+		LDX		#0
+		BCC		moveright
+		CLC
+notright: 
+		LDA 	#00
+		sta 	ddrb
+		LDA 	outputra
+		ASL					;shift to 5th bit
+		ASL
+		ASL
+		LDX		#0
+		BCC 	printfire
+		ASL					;shift to 4th bit
+		LDX 	#0
+		BCC 	moveleft
+		ASL					;shift to 3rd bit
+		BCC 	movedown
+		ASL					;shift to 2nd bit
+		BCS 	readinput 	;if carry is not set
+		LDX		#0
+		JMP		moveup		;else print up
+		JMP 	readinput
+		RTS
+
+printfire:
+	JMP		readinput
 
 moveright:
 	LDX		XX
@@ -382,7 +393,10 @@ moveright:
 	INC		XX
 	JSR		collsion
 	JMP 	printcircle
-	
+
+rdinput:
+	JMP		readinput
+
 moveleft:     
 	LDX		XX
 	CPX		#0
@@ -409,7 +423,7 @@ moveup:
 movedown:   
 	LDY		YY
 	CPY		#22
-	BEQ		readinput
+	BEQ		rdinput
 	LDX		XX
 ;	CLC
 	JSR		FINDSCREENPOSITION
