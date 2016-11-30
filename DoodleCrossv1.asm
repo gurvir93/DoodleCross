@@ -14,17 +14,27 @@ DDRA		.equ	$9113	; Data direction register for port A
 OUTPUTRA 	.equ	$9111	; Output register A
 DDRB		.equ	$9122	; Data direction register for port B
 OUTPUTRB 	.equ	$9120	; Output register B
+RDTIM		.equ	$FFDE	; Memory address for read system time - uses a, x, y
+SETTIM		.equ	$FFDB	; Memory address for setting system time - uses a, x, y
+
 ; ==============
 ; | MEMORY MAP |
 ; ==============
 ; --- User Variables ---
 ENEMYSYM	.equ	$1D50
 POINTSYM	.equ	$1D51
+COUNTER		.equ	$1D52
+XSTORAGE	.equ	$1D53
+YSTORAGE	.equ	$1D54
+ASTORAGE	.equ	$1D55
+TIME 		.equ	$1D56
+
 
 MAXSCREENX  .equ	#21
 MAXSCREENY	.equ	#22
 ZERO		.equ	$30		; CHR$ code for 0
 CIRCLE		.equ	$51		;CHR$ code for circle
+
 
 
 SCOREX		.equ	#13
@@ -198,17 +208,24 @@ main:
 ;	$1D32 - Y coordinate
 
 ; 
+
+
 startGame:
+	LDA		#8	;POKE 36879,8
+	STA		$900F
+
 	LDX		#0
 	LDA		#0
 
-	LDA		#8	;POKE 36879,8
-	STA		$900F
 initializeArray:
 	STA		SCOREHUND,x	; First item in array offset by x
 	INX
 	CPX		#$32		; Compare with hex 32 (size of array)
 	BNE		initializeArray
+
+setArrayAttributes:
+	LDA		#CIRCLE
+	STA		PLAYERSYM
 
 clearScreen:
 	LDA		#CLEAR
@@ -216,159 +233,173 @@ clearScreen:
 
 gameLoop:
 	JSR		refreshScreen
-	JSR		incScore
+	; JSR		incScore
 	JSR		takeInput
-	JSR		test
+	; JSR		test
 
 	JMP		gameLoop
 	
 	RTS
 
 test:
-		LDX		PLAYERX
-		LDY		PLAYERY
-		JSR		findScreenPosition
-		LDA		#CIRCLE
-		JSR		plotPosition
-		RTS
+	LDX		PLAYERX
+	LDY		PLAYERY
+	JSR		findScreenPosition
+	LDA		#CIRCLE
+	JSR		plotPosition
+	RTS
 ; ============================= Start Input =============================
 takeInput:
-		LDA		#127
-		STA 	DDRB
-		CLC
-		LDA 	#0
+	LDA		#127
+	STA 	DDRB
+	CLC
+	LDA 	#0
 ;loop:
-		LDA 	OUTPUTRB
-		ASL		
-		LDX		#0
-		BCC		moveRight
-		CLC
+	LDA 	OUTPUTRB
+	ASL		
+	LDX		#0
+	BCC		moveRight
+	CLC
 notRight: 
-		LDA 	#0
-		STA 	DDRA
-		LDA 	OUTPUTRA
-		ASL					;shift to 5th bit
-		ASL
-		ASL
-		LDX		#0
-		BCC 	doneInput
-		ASL					;shift to 4th bit
-		LDX 	#0
-		BCC 	moveLeft
-		ASL					;shift to 3rd bit
-		BCC 	moveDown
-		ASL					;shift to 2nd bit
-		BCS 	doneInput 	;if carry is not set
-		LDX		#0
-		JMP		moveUp		;else print up
+	LDA 	#0
+	STA 	DDRA
+	LDA 	OUTPUTRA
+	ASL					;shift to 5th bit
+	ASL
+	ASL
+	LDX		#0
+	BCC 	doneInput
+	ASL					;shift to 4th bit
+	LDX 	#0
+	BCC 	moveLeft
+	ASL					;shift to 3rd bit
+	BCC 	moveDown
+	ASL					;shift to 2nd bit
+	BCS 	doneInput 	;if carry is not set
+	LDX		#0
+	JMP		moveUp		;else print up
 doneInput:
-		RTS
+	RTS
 
 moveRight:
-		LDX		PLAYERX
-		CPX		#MAXSCREENX
-		BEQ		doneInput
-		INC		PLAYERX
-		JMP 	doneInput
+	LDX		PLAYERX
+	CPX		#MAXSCREENX
+	BEQ		doneInput
+	INC		PLAYERX
+	JMP 	doneInput
 
 moveLeft:
-		LDX		PLAYERX
-		CPX		#0
-		BEQ		doneInput
-		DEC		PLAYERX
-		JMP 	doneInput
+	LDX		PLAYERX
+	CPX		#0
+	BEQ		doneInput
+	DEC		PLAYERX
+	JMP 	doneInput
 
 moveDown:
-		LDX		PLAYERY
-		CPX		#MAXSCREENY
-		BEQ		doneInput
-		INC		PLAYERY
-		JMP 	doneInput
+	LDX		PLAYERY
+	CPX		#MAXSCREENY
+	BEQ		doneInput
+	INC		PLAYERY
+	JMP 	doneInput
 
 moveUp:
-		LDX		PLAYERY
-		CPX		#02
-		BEQ		doneInput
-		DEC		PLAYERY
-		JMP 	doneInput
+	LDX		PLAYERY
+	CPX		#02
+	BEQ		doneInput
+	DEC		PLAYERY
+	JMP 	doneInput
 
 
 findScreenPosition:
-		LDA		#00
-		STY		$03
+	LDA		#00
+	STY		$03
 initializeScreenPosition:
-		STX		$00		
-		LDA		#$1E	
-		STA		$01
-		LDY		#$00
+	STX		$00		
+	LDA		#$1E	
+	STA		$01
+	LDY		#$00
 
 addYLevels:
-		CPY		$03
-		BEQ		foundPosition
-		INY
-		LDX		#00
+	CPY		$03
+	BEQ		foundPosition
+	INY
+	LDX		#00
 add22:		
-		INC		$00
-		INX
-		LDA		$00
-		CMP		#00	;CHANGED FROM 255:WOULDNT PLOT TO 1EFF?
-		BNE		dontAddCarry	
-		INC		$01
+	INC		$00
+	INX
+	LDA		$00
+	CMP		#00	;CHANGED FROM 255:WOULDNT PLOT TO 1EFF?
+	BNE		dontAddCarry	
+	INC		$01
 dontAddCarry:
-		CPX		#22
-		BNE		add22
-		JMP 	addYLevels
+	CPX		#22
+	BNE		add22
+	JMP 	addYLevels
 foundPosition:
-		RTS
-	;------------------------------------------------------
+	RTS
+;------------------------------------------------------
 plotPosition:
-		LDY		#$00
-		STA		($00),Y
-		RTS
-	;-------------------------------------------------------------------------------
-	;FIND COLOUR
-	;PURPOSE: TAKES IN AN X AN Y AND RETURNS THE POSITION ON THE SCREEN TO DRAW TO
-	;	IN $04 AND $05 ($05 = MSB, $04 = LSB). 
-	;USAGE: LOAD X AND Y VALUES INTO X,Y REGISTERS S.T. 0>=X<=21, 0>=Y<=22
-	;	AND CALL FINDCOLOURPOSITION, THEN LOAD COLOUR VALUE INTO ACCUMULATOR AND CALL
-	;	PLOTCOLOUR SUBROUTINE
+	LDY		#$00
+	STA		($00),Y
+	RTS
+;-------------------------------------------------------------------------------
+;FIND COLOUR
+;PURPOSE: TAKES IN AN X AN Y AND RETURNS THE POSITION ON THE SCREEN TO DRAW TO
+;	IN $04 AND $05 ($05 = MSB, $04 = LSB). 
+;USAGE: LOAD X AND Y VALUES INTO X,Y REGISTERS S.T. 0>=X<=21, 0>=Y<=22
+;	AND CALL FINDCOLOURPOSITION, THEN LOAD COLOUR VALUE INTO ACCUMULATOR AND CALL
+;	PLOTCOLOUR SUBROUTINE
 
 findColourPosition:
-	;	LDA		#$AA
-	;	STA		$1D0F
-		LDA		#00
-		STA		$06
-		STY		$07
+;	LDA		#$AA
+;	STA		$1D0F
+	LDA		#00
+	STA		$06
+	STY		$07
 initializeColourPosition:
-		STX		$04		
-		LDA		#$96	
-		STA		$05
-		LDY		#$00
+	STX		$04		
+	LDA		#$96	
+	STA		$05
+	LDY		#$00
 addCYLevels:
-		CPY		$07
-		BEQ		foundCPosition
-		INY
-		LDX		#00
+	CPY		$07
+	BEQ		foundCPosition
+	INY
+	LDX		#00
 addC22:		
-		INC		$04
-		INX
-		LDA		$04
-		CMP		#00
-		BNE		dontAddCCarry	
-		INC		$05
+	INC		$04
+	INX
+	LDA		$04
+	CMP		#00
+	BNE		dontAddCCarry	
+	INC		$05
 dontAddCCarry:
-		CPX		#22
-		BNE		addC22
-		JMP 	addCYLevels
+	CPX		#22
+	BNE		addC22
+	JMP 	addCYLevels
 foundCPosition:
-		RTS
+	RTS
 
 plotColour:
-		LDY		#00
-		STA		($04),Y
-		RTS	
+	LDY		#00
+	STA		($04),Y
+	RTS	
+
+storeState:
+	STX		XSTORAGE
+	STY		YSTORAGE
+	STA		ASTORAGE
+	RTS
+
+loadState:
+	LDX		XSTORAGE
+	LDY		YSTORAGE
+	LDA		ASTORAGE
+	RTS
+
 ; Screen refresh subroutine - uses A, X, and Y
 refreshScreen:
+	JSR		delay
 	LDA		#CLEAR
 	JSR		CHROUT
 
@@ -413,6 +444,37 @@ plotCurrentScore:
 
 
 plotItem:
+	LDX		#0
+	STX		COUNTER
+
+plotItemLoop:
+	INC		COUNTER
+
+	LDY		COUNTER
+	LDX		PLAYERSYM,Y
+	INC		COUNTER
+	TXA
+	LDX		COUNTER
+	LDY		PLAYERSYM,X
+	TAX
+	JSR		findScreenPosition
+
+	DEC		COUNTER
+	DEC		COUNTER
+	LDX		COUNTER
+	LDA		PLAYERSYM,X		; First item in array offset by x
+	CMP		#0
+	BEQ		dontPlot
+	JSR		plotPosition
+dontPlot:
+	INC		COUNTER
+	INC		COUNTER
+	INC		COUNTER
+
+	LDX		COUNTER	
+	CPX		#$30			; Compare with hex 32 (size of array)
+	BNE		plotItemLoop
+
 	RTS
 ; ============================= Incrementing Score =============================
 ;	Uses - x
@@ -448,5 +510,24 @@ incScoreHunds:
 	STX		SCOREONES
 	RTS
 ; ============================= END Incrementing Score =============================
+
+delay:
+	LDX		#0		; Add 255 jiffy seconds (1/60th second), approx 4.25s
+	STX		TIME	; Store into RAM for later comparison
+
+	LDX		#0		; Set x = 0
+	TXA				; Set a = 0
+	TAY				; Set y = 0
+	
+	JSR		SETTIM	; Set system time to 0
+	
+	
+wait:
+	JSR 	RDTIM	; Read system time
+	CPY		TIME	; Check if system time is same as at least 4.25s
+	BCC		wait	; Loop if not
+	
+	RTS				; End subroutine
+
 score:
 	.byte	"SCORE:"
