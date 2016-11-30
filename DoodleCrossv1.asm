@@ -10,17 +10,22 @@ PLOT		.equ	$FFF0	; Address for kernal routine PLOT
 ; ====================
 CLEAR		.equ	$93		; CHR$ code for clear screen
 RASTER		.equ	$9004	; Current raster count -- used to generate random number
-
+DDRA		.equ	$9113	; Data direction register for port A
+OUTPUTRA 	.equ	$9111	; Output register A
+DDRB		.equ	$9122	; Data direction register for port B
+OUTPUTRB 	.equ	$9120	; Output register B
 ; ==============
 ; | MEMORY MAP |
 ; ==============
 ; --- User Variables ---
 ENEMYSYM	.equ	$1D50
-POINTSYM	.equ	$1D15
+POINTSYM	.equ	$1D51
 
 MAXSCREENX  .equ	#21
 MAXSCREENY	.equ	#22
 ZERO		.equ	$30		; CHR$ code for 0
+CIRCLE		.equ	$51		;CHR$ code for circle
+
 
 SCOREX		.equ	#13
 SCOREY		.equ	#0
@@ -197,6 +202,8 @@ startGame:
 	LDX		#0
 	LDA		#0
 
+	LDA		#8	;POKE 36879,8
+	STA		$900F
 initializeArray:
 	STA		SCOREHUND,x	; First item in array offset by x
 	INX
@@ -210,10 +217,156 @@ clearScreen:
 gameLoop:
 	JSR		refreshScreen
 	JSR		incScore
+	JSR		takeInput
+	JSR		test
+
 	JMP		gameLoop
 	
 	RTS
 
+test:
+		LDX		PLAYERX
+		LDY		PLAYERY
+		JSR		findScreenPosition
+		LDA		#CIRCLE
+		JSR		plotPosition
+		RTS
+; ============================= Start Input =============================
+takeInput:
+		LDA		#127
+		STA 	DDRB
+		CLC
+		LDA 	#0
+;loop:
+		LDA 	OUTPUTRB
+		ASL		
+		LDX		#0
+		BCC		moveRight
+		CLC
+notRight: 
+		LDA 	#0
+		STA 	DDRA
+		LDA 	OUTPUTRA
+		ASL					;shift to 5th bit
+		ASL
+		ASL
+		LDX		#0
+		BCC 	doneInput
+		ASL					;shift to 4th bit
+		LDX 	#0
+		BCC 	moveLeft
+		ASL					;shift to 3rd bit
+		BCC 	moveDown
+		ASL					;shift to 2nd bit
+		BCS 	doneInput 	;if carry is not set
+		LDX		#0
+		JMP		moveUp		;else print up
+doneInput:
+		RTS
+
+moveRight:
+		LDX		PLAYERX
+		CPX		#MAXSCREENX
+		BEQ		doneInput
+		INC		PLAYERX
+		JMP 	doneInput
+
+moveLeft:
+		LDX		PLAYERX
+		CPX		#0
+		BEQ		doneInput
+		DEC		PLAYERX
+		JMP 	doneInput
+
+moveDown:
+		LDX		PLAYERY
+		CPX		#MAXSCREENY
+		BEQ		doneInput
+		INC		PLAYERY
+		JMP 	doneInput
+
+moveUp:
+		LDX		PLAYERY
+		CPX		#02
+		BEQ		doneInput
+		DEC		PLAYERY
+		JMP 	doneInput
+
+
+findScreenPosition:
+		LDA		#00
+		STY		$03
+initializeScreenPosition:
+		STX		$00		
+		LDA		#$1E	
+		STA		$01
+		LDY		#$00
+
+addYLevels:
+		CPY		$03
+		BEQ		foundPosition
+		INY
+		LDX		#00
+add22:		
+		INC		$00
+		INX
+		LDA		$00
+		CMP		#00	;CHANGED FROM 255:WOULDNT PLOT TO 1EFF?
+		BNE		dontAddCarry	
+		INC		$01
+dontAddCarry:
+		CPX		#22
+		BNE		add22
+		JMP 	addYLevels
+foundPosition:
+		RTS
+	;------------------------------------------------------
+plotPosition:
+		LDY		#$00
+		STA		($00),Y
+		RTS
+	;-------------------------------------------------------------------------------
+	;FIND COLOUR
+	;PURPOSE: TAKES IN AN X AN Y AND RETURNS THE POSITION ON THE SCREEN TO DRAW TO
+	;	IN $04 AND $05 ($05 = MSB, $04 = LSB). 
+	;USAGE: LOAD X AND Y VALUES INTO X,Y REGISTERS S.T. 0>=X<=21, 0>=Y<=22
+	;	AND CALL FINDCOLOURPOSITION, THEN LOAD COLOUR VALUE INTO ACCUMULATOR AND CALL
+	;	PLOTCOLOUR SUBROUTINE
+
+findColourPosition:
+	;	LDA		#$AA
+	;	STA		$1D0F
+		LDA		#00
+		STA		$06
+		STY		$07
+initializeColourPosition:
+		STX		$04		
+		LDA		#$96	
+		STA		$05
+		LDY		#$00
+addCYLevels:
+		CPY		$07
+		BEQ		foundCPosition
+		INY
+		LDX		#00
+addC22:		
+		INC		$04
+		INX
+		LDA		$04
+		CMP		#00
+		BNE		dontAddCCarry	
+		INC		$05
+dontAddCCarry:
+		CPX		#22
+		BNE		addC22
+		JMP 	addCYLevels
+foundCPosition:
+		RTS
+
+plotColour:
+		LDY		#00
+		STA		($04),Y
+		RTS	
 ; Screen refresh subroutine - uses A, X, and Y
 refreshScreen:
 	LDA		#CLEAR

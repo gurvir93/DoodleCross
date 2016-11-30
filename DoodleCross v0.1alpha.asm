@@ -392,15 +392,15 @@ notright:
 		ASL					;shift to 3rd bit
 		BCC 	movedown
 		ASL					;shift to 2nd bit
-		BCS 	readinput 	;if carry is not set
+		BCS 	printfire 	;if carry is not set
 		LDX		#0
 		JMP		moveup		;else print up
-		JMP 	readinput
-		RTS
+;		JMP 	readinput
+	;	RTS
 
 printfire:
 	JMP		readinput
-
+		RTS
 moveright:
 	LDX		XX
 	CPX		#21
