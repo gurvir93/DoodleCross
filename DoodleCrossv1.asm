@@ -2,7 +2,7 @@
 ; ======================
 ; | KERNAL SUBROUTINES |
 ; ======================
-CHROUT		.equ	$FFD22	; Address for kernal routine CHROUT
+CHROUT		.equ	$FFD2	; Address for kernal routine CHROUT
 PLOT		.equ	$FFF0	; Address for kernal routine PLOT
 
 ; ====================
@@ -17,11 +17,16 @@ RASTER		.equ	$9004	; Current raster count -- used to generate random number
 ; --- User Variables ---
 ENEMYSYM	.equ	$1D50
 POINTSYM	.equ	$1D15
-SCOREX		.equ	#13
-SCOREY		.equ	#0
+
 MAXSCREENX  .equ	#21
 MAXSCREENY	.equ	#22
+ZERO		.equ	$30		; CHR$ code for 0
 
+SCOREX		.equ	#13
+SCOREY		.equ	#0
+SCOREHUNDX	.equ	#19
+SCORETENSX	.equ	#20
+STOREONESX	.equ	#21
 ; ----------------------
 
 ; --- Array of Objects ---
@@ -29,7 +34,7 @@ SCOREHUND	.equ	$1D00
 SCORETENS	.equ	$1D01
 SCOREONES	.equ	$1D02
 
-PLAYERSYM	.equ	$51
+PLAYERSYM	.equ	$1D03
 PLAYERX		.equ	$1D04
 PLAYERY		.equ	$1D05
 
@@ -188,103 +193,107 @@ main:
 ;	$1D32 - Y coordinate
 
 ; 
+startGame:
+	LDX		#0
+	LDA		#0
+
 initializeArray:
+	STA		SCOREHUND,x	; First item in array offset by x
+	INX
+	CPX		#$32		; Compare with hex 32 (size of array)
+	BNE		initializeArray
 
 clearScreen:
 	LDA		#CLEAR
 	JSR		CHROUT
 
+gameLoop:
+	JSR		refreshScreen
+	JSR		incScore
+	JMP		gameLoop
+	
+	RTS
+
 ; Screen refresh subroutine - uses A, X, and Y
 refreshScreen:
+	LDA		#CLEAR
+	JSR		CHROUT
 
+	JSR		printScoreText
+	JSR		plotCurrentScore
+	JSR		plotItem
+	RTS
 	
 printScoreText:
-	LDX		SCOREY			; Y AXIS VALUE
-	LDY		SCOREX			; X AXIS VALUE
+	LDX		#SCOREY			; Y AXIS VALUE
+	LDY		#SCOREX			; X AXIS VALUE
 	CLC						; Set carry bit - needed to call kernal routine PLOT
 	JSR		PLOT
-
 	LDX		#0
+
+printScoreTextLoop:
 	LDA		score,x			; Load specific byte x into accumulator
 	JSR		CHROUT  		; Jump to character out subroutine
 	INX						; Increment x
 	CPX		#6				; Compare x with total length of string going to be outputted
-	BNE		printScoreText 	; If not equal, branch to loop
+	BNE		printScoreTextLoop	; If not equal, branch to loop
 
 	RTS
 
 plotCurrentScore:
-
-plotItem:
-
-; ============================= Start Score =============================
-printScore:
-	LDX		#0
-	LDY		#0
-	JSR		storeIntoMemory
-	
-	LDA		#ZERO
-	JSR		CHROUT
-	JSR		CHROUT
-	RTS
-
-incScore:
-	JSR		loadFromMemory
-	JSR		scoreOnesPos
-	CPY		#9
-	BEQ		incScoreTens
-	INY
-	JSR		storeIntoMemory
-	TYA
+	LDA		SCOREHUND
+	CLC
 	ADC		#ZERO
 	JSR		CHROUT
-	JMP		plotheart
-	
+
+	LDA		SCORETENS
+	CLC
+	ADC		#ZERO
+	JSR		CHROUT
+
+	CLC
+	LDA		SCOREONES
+	ADC		#ZERO
+	JSR		CHROUT
+
+	RTS
+
+
+plotItem:
+	RTS
+; ============================= Incrementing Score =============================
+;	Uses - x
+incScore:
+	LDX		SCOREONES
+	CPX		#9
+	BEQ		incScoreTens
+	INX
+	STX		SCOREONES
 return:
 	RTS
 
 incScoreTens:
+	LDX		SCORETENS
+	CPX		#9
+	BEQ		incScoreHunds
+
+	INX
+	STX		SCORETENS
+	LDX		#0
+	STX		SCOREONES
+	RTS
+
+incScoreHunds:
+	LDX		SCOREHUND
 	CPX		#9
 	BEQ		return
-	LDY		#0
-	TYA
-	ADC		#ZERO
-	JSR		CHROUT
+
 	INX
-	JSR		storeIntoMemory
-	JSR		scoreTensPos
-	TXA
-	ADC		#ZERO
-	JSR		CHROUT
-	JMP		plotheart
-
-storeIntoMemory:
-	STX		$1DFE
-	STY		$1DFF
+	STX		SCOREHUND
+	LDX		#0
+	STX		SCORETENS
+	STX		SCOREONES
 	RTS
-	
-loadFromMemory:
-	LDX		$1DFE
-	LDY		$1DFF
-	RTS
-
-scoreOnesPos:
-	JSR		storeIntoMemory
-	LDX		#0			; Y AXIS VALUE
-	LDY		#21			; X AXIS VALUE
-	CLC
-	JSR		PLOT
-	JSR		loadFromMemory
-	RTS
-	
-scoreTensPos:
-	JSR		storeIntoMemory
-	LDX		#0			; Y AXIS VALUE
-	LDY		#20			; X AXIS VALUE
-	CLC
-	JSR		PLOT
-	JSR		loadFromMemory
-	RTS
-
+; ============================= END Incrementing Score =============================
 score:
 	.byte	"SCORE:"
