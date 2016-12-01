@@ -31,7 +31,9 @@ XSTORAGE	.equ	$1D53
 YSTORAGE	.equ	$1D54
 ASTORAGE	.equ	$1D55
 TIME 		.equ	$1D56
-
+NUMOFLIVES	.equ	$1D57
+LIVESCOUNT	.equ	$1D58
+LIVESXCOORD	.equ	$1D59
 
 MAXSCREENX  .equ	#21
 MAXSCREENY	.equ	#22
@@ -39,6 +41,11 @@ ZERO		.equ	$30		; CHR$ code for 0
 CIRCLE		.equ	$51		; CHR$ code for circle
 HEART		.equ	$53
 ENEMY		.equ	$56
+
+INITLIVES	.equ	#3
+LIVESX		.equ	#0
+LIVESY		.equ	#0
+FSTLIVEPS	.equ	#6		; position to plot first life
 
 SCOREX		.equ	#13
 SCOREY		.equ	#0
@@ -212,14 +219,21 @@ main:
 
 ; 
 
-
 startInitialization:
 	LDA		#8				; POKE 36879,8
 	STA		$900F
 
 	LDX		#0
 	LDA		#0
-
+	
+initializeLives:
+	LDA		#INITLIVES
+	STA		NUMOFLIVES
+	LDA		#FSTLIVEPS
+	STA		LIVESXCOORD
+	LDA		#0
+	STA		LIVESCOUNT
+	
 initializeArray:
 	STA		SCOREHUND,x		; First item in array offset by x
 	INX
@@ -489,8 +503,10 @@ randomizer:
 ; Screen refresh subroutine - uses A, X, and Y
 ;----------------------------------------------
 refreshScreenStart:
+	JSR		printLivesText
 	JSR		printScoreText
 refreshScreenScore:
+	JSR		plotCurrentLives
 	JSR		plotCurrentScore
 
 refreshScreen:
@@ -498,6 +514,46 @@ refreshScreen:
 	JSR		plotItem
 	JSR		delay
 
+	RTS
+
+printLivesText:
+	LDX		#LIVESY				; Y AXIS VALUE
+	LDY		#LIVESX				; X AXIS VALUE
+	CLC							; Set carry bit - needed to call kernal routine PLOT
+	JSR		PLOT
+	LDX		#0
+
+printLivesTextLoop:
+	LDA		lives,x				; Load specific byte x into accumulator
+	JSR		CHROUT  			; Jump to character out subroutine
+	INX							; Increment x
+	CPX		#6					; Compare x with the length of string going to be outputted
+	BNE		printLivesTextLoop	; If not equal, branch to loop
+	RTS
+	
+plotCurrentLives:
+	LDX		LIVESCOUNT			; Load counter of lives
+	CPX		NUMOFLIVES			; Compare to number of lives
+	BEQ		endPlotCurrLives	; Branch to endPrintCurrLives if the counter = number of lives
+	LDX		#LIVESY				; Load y coordinate for lives
+	LDY		LIVESXCOORD			; Load x coordinate for lives
+	CLC		
+	JSR		PLOT				; Move cursor
+	LDA		#$73				; Load character for heart
+	JSR		CHROUT				; Plot heart
+	LDX		LIVESCOUNT
+	INX							; Increment counter
+	STX		LIVESCOUNT			; Update counter
+	INY							; Increment X Coordinate for printing lives
+	STY		LIVESXCOORD			; Update x coordinate for printing lives
+	JMP		plotCurrentLives
+	
+endPlotCurrLives:
+	LDA		#1
+	STA		LIVESCOUNT
+	LDX		#FSTLIVEPS
+	STX		LIVESXCOORD	
+	LDX		#0
 	RTS
 	
 printScoreText:
@@ -684,6 +740,9 @@ waitLoop:
     BNE		waitLoop
     RTS
 
+lives:
+	.byte	"LIVES:"
+	
 score:
 	.byte	"SCORE:"
 
