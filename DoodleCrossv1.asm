@@ -16,6 +16,7 @@ DDRB		.equ	$9122	; Data direction register for port B
 OUTPUTRB 	.equ	$9120	; Output register B
 RDTIM		.equ	$FFDE	; Memory address for read system time - uses a, x, y
 SETTIM		.equ	$FFDB	; Memory address for setting system time - uses a, x, y
+JIFFYCLOCK	.equ	$00A2	; Memory address for the lowest byte in the jiffy clock (1/60th of a second)
 
 ; ==============
 ; | MEMORY MAP |
@@ -226,6 +227,9 @@ initializeArray:
 setArrayAttributes:
 	LDA		#CIRCLE
 	STA		PLAYERSYM
+	LDA		#11			; Middle of screen
+	STA		PLAYERX
+	STA		PLAYERY
 
 clearScreen:
 	LDA		#CLEAR
@@ -235,19 +239,10 @@ gameLoop:
 	JSR		refreshScreen
 	; JSR		incScore
 	JSR		takeInput
-	; JSR		test
-
 	JMP		gameLoop
 	
 	RTS
 
-test:
-	LDX		PLAYERX
-	LDY		PLAYERY
-	JSR		findScreenPosition
-	LDA		#CIRCLE
-	JSR		plotPosition
-	RTS
 ; ============================= Start Input =============================
 takeInput:
 	LDA		#127
@@ -399,13 +394,14 @@ loadState:
 
 ; Screen refresh subroutine - uses A, X, and Y
 refreshScreen:
-	JSR		delay
 	LDA		#CLEAR
 	JSR		CHROUT
 
 	JSR		printScoreText
 	JSR		plotCurrentScore
 	JSR		plotItem
+	JSR		delay
+
 	RTS
 	
 printScoreText:
@@ -512,22 +508,13 @@ incScoreHunds:
 ; ============================= END Incrementing Score =============================
 
 delay:
-	LDX		#0		; Add 255 jiffy seconds (1/60th second), approx 4.25s
-	STX		TIME	; Store into RAM for later comparison
-
-	LDX		#0		; Set x = 0
-	TXA				; Set a = 0
-	TAY				; Set y = 0
-	
-	JSR		SETTIM	; Set system time to 0
-	
-	
-wait:
-	JSR 	RDTIM	; Read system time
-	CPY		TIME	; Check if system time is same as at least 4.25s
-	BCC		wait	; Loop if not
-	
-	RTS				; End subroutine
+	LDX		#0
+	STX		JIFFYCLOCK
+waitLoop:
+	LDX		JIFFYCLOCK
+    CPX 	#2
+    BNE		waitLoop
+    RTS
 
 score:
 	.byte	"SCORE:"
