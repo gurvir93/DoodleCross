@@ -17,7 +17,9 @@ OUTPUTRA 	.equ	$9111	; Output register A
 DDRB		.equ	$9122	; Data direction register for port B
 OUTPUTRB 	.equ	$9120	; Output register B
 JIFFYCLOCK	.equ	$00A2	; Memory address for the lowest byte in the jiffy clock (1/60th of a second)
-
+WHITE		.equ	$01
+RED			.equ	$02
+GREEN		.equ	$05
 ; ==============
 ; | MEMORY MAP |
 ; ==============
@@ -35,7 +37,7 @@ MAXSCREENX  .equ	#21
 MAXSCREENY	.equ	#22
 ZERO		.equ	$30		; CHR$ code for 0
 CIRCLE		.equ	$51		; CHR$ code for circle
-
+HEART		.equ	$53
 
 
 SCOREX		.equ	#13
@@ -231,7 +233,7 @@ setArrayAttributes:
 	STA		PLAYERX
 	STA		PLAYERY
 
-	LDA		#$53
+	LDA		#HEART
 	STA		ITEM1SYM
 	LDA		#3
 	STA		ITEM1X
@@ -479,7 +481,41 @@ plotItemLoop:
 	JSR		findScreenPosition
 
 	DEC		COUNTER
+
+	LDY		COUNTER
+	LDX		PLAYERSYM,Y
+	INC		COUNTER
+	TXA
+	LDX		COUNTER
+	LDY		PLAYERSYM,X
+	TAX
+	JSR		findColourPosition
+
 	DEC		COUNTER
+	DEC		COUNTER
+	LDX		COUNTER
+	LDA		PLAYERSYM,X
+	CMP		#CIRCLE				;CHECK PLAYERSYM FOR WHAT COLOUR TO SET
+	BNE		CHECKFORHEART
+	LDA		#RED
+	JSR		plotColour
+	JMP		plotAtPosition
+CHECKFORHEART:
+	LDX		COUNTER
+	LDA		PLAYERSYM,X
+	CMP		#HEART
+	BNE		colourEnemy
+	LDA		#GREEN
+	JSR		plotColour
+	JMP		plotAtPosition
+colourEnemy:
+	LDA		#RED
+	JSR		plotColour	
+
+
+plotAtPosition:
+;	DEC		COUNTER
+;	DEC		COUNTER
 	LDX		COUNTER
 	LDA		PLAYERSYM,X			; First item in array offset by X
 	CMP		#0
@@ -493,6 +529,8 @@ dontPlot:
 	LDX		COUNTER	
 	CPX		#$30				; Compare with hex 32 (size of array)
 	BNE		plotItemLoop
+
+
 
 	RTS
 ; ============================= Incrementing Score =============================
