@@ -397,6 +397,16 @@ loadState:
 	LDA		ASTORAGE
 	RTS
 
+; ============================= Start Random Generator =============================
+randomizer:
+	LDA		$0
+	CLC
+	ADC		.seed			; Add seed value to accumulator
+	ADC		RASTER			; Add current raster count to accumulator
+	STA		.seed			; Update seed value with new random number
+	RTS
+; ============================= Start Random Generator =============================
+
 ;----------------------------------------------
 ; Screen refresh subroutine - uses A, X, and Y
 ;----------------------------------------------

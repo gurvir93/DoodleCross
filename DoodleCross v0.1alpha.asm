@@ -268,32 +268,11 @@ clr:
 
 ; ============================= Start Random Generator =============================
 randomizer:
-	LDA		$0				; Get zero page value
-	ADC		.seed			; Add seed value to accumulator
-	ADC		RASTER			; Add current raster count to accumulator
-	STA		.seed			; Update seed value with new random number
+	; LDA		$0				; Get zero page value
+	; ADC		.seed			; Add seed value to accumulator
+	; ADC		RASTER			; Add current raster count to accumulator
+	; STA		.seed			; Update seed value with new random number
 
-	ASL
-	ASL
-	ASL
-	ASL
-	LSR
-	LSR
-	LSR
-	LSR
-	
-	STA		$1D00
-	RTS
-
-	; LDA		#0
-	; ADC		.seed
-	; ASL
-	; ASL
-	; CLC
-	; ADC		.seed
-	; CLC
-	; ADC		#23
-	; STA		.seed
 	; ASL
 	; ASL
 	; ASL
@@ -305,6 +284,28 @@ randomizer:
 	
 	; STA		$1D00
 	; RTS
+
+	LDA		#0
+	ADC		.seed
+	ADC		RASTER
+	ASL
+	ASL
+	CLC
+	ADC		.seed
+	CLC
+	ADC		#23
+	STA		.seed
+	ASL
+	ASL
+	ASL
+	ASL
+	LSR
+	LSR
+	LSR
+	LSR
+	
+	STA		$1D00
+	RTS
 ; ============================= End Random Generator =============================
 
 update_score:
