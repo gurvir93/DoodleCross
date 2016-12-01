@@ -242,7 +242,6 @@ setArrayAttributes:
 clearScreen:
 	LDA		#CLEAR
 	JSR		CHROUT
-
 gameLoop:
 	JSR		refreshScreen
 	; JSR		incScore
@@ -311,6 +310,14 @@ moveUp:
 	BEQ		doneInput
 	DEC		PLAYERY
 	JMP 	doneInput
+
+
+	;-------------------------------------------------------------------------------
+	;FIND POSITION
+	;PURPOSE: TAKES IN AN X AN Y AND RETURNS THE POSITION ON THE SCREEN TO DRAW TO
+	;	IN $00 AND $01 ($01 = MSB, $00 = LSB). 
+	;USAGE: LOAD X AND Y VALUES INTO X,Y REGISTERS S.T. 0>=X<=21, 0>=Y<=22
+	;	THEN STORE INDIRECTLY ASCII/CUSTOM CHARACTER SET NEEDED IN THAT POSITION
 
 
 findScreenPosition:
@@ -419,9 +426,9 @@ randomizer:
 ; Screen refresh subroutine - uses A, X, and Y
 ;----------------------------------------------
 refreshScreen:
-	LDA		#CLEAR
-	JSR		CHROUT
-
+;	LDA		#CLEAR
+;	JSR		CHROUT
+	JSR		clearPlayField
 	JSR		printScoreText
 	JSR		plotCurrentScore
 	JSR		plotItem
@@ -497,7 +504,7 @@ plotItemLoop:
 	LDA		PLAYERSYM,X
 	CMP		#CIRCLE				;CHECK PLAYERSYM FOR WHAT COLOUR TO SET
 	BNE		CHECKFORHEART
-	LDA		#RED
+	LDA		#WHITE
 	JSR		plotColour
 	JMP		plotAtPosition
 CHECKFORHEART:
@@ -568,6 +575,32 @@ incScoreHunds:
 	STX		SCOREONES
 	RTS
 ; ============================= END Incrementing Score =============================
+
+
+	;-------------------------------------------------------------------------------
+	;FIND PLAYFIELD
+	;PURPOSE: CLEARS THE GAME PLAYFIELD (EVERYTHING UNDERNEATH SCORE AND LIVES)
+	;USAGE:	JSR clearPlayField
+	;--------------------------------------------------------------------------------
+
+clearPlayField:
+	LDX		#00
+;	CLC
+clearLoop1:
+	LDA		#32
+	STA		$1E16,X
+	INX
+	CPX		#255
+	BNE		clearLoop1
+;	BCC		clearLoop1
+	LDX		#00
+clearLoop2:
+	LDA		#32
+	STA		$1F15,X
+	INX
+	CPX		#229
+	BNE		clearLoop2
+	RTS
 
 delay:
 	LDX		#0
