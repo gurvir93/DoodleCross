@@ -244,10 +244,10 @@ clearScreen:
 	JSR		CHROUT
 gameLoop:
 	JSR		refreshScreen
-	; JSR		incScore
 	JSR		takeInput
+	JSR		checkCollision
+
 	JMP		gameLoop
-	
 	RTS
 
 ; ============================= Start Input =============================
@@ -412,6 +412,57 @@ loadState:
 	LDA		ASTORAGE
 	RTS
 
+; ============================= Start Collision Detection =============================
+checkCollision:
+	LDY		#0
+	STY		COUNTER
+
+checkCollisionLoop:
+
+	LDA		ITEM1SYM,Y
+	CMP		#0
+	BEQ		noCollision0
+
+	LDY		COUNTER
+
+	INY
+	STY		COUNTER
+
+	LDA		ITEM1SYM,Y
+	CMP		PLAYERX
+	BNE		noCollision1
+
+	INY
+	STY		COUNTER
+
+	LDA		ITEM1SYM,Y
+	CMP		PLAYERY
+	BNE		noCollision2
+
+	DEY
+	DEY
+	STY		COUNTER
+
+	LDA		#0
+	STA		ITEM1SYM,Y
+
+	JSR		incScore
+
+	RTS	
+
+noCollision0:
+	INY
+noCollision1:
+	INY
+noCollision2:
+	INY
+	STY		COUNTER
+
+	CPY		#$2D
+	BNE		checkCollisionLoop
+	RTS
+; ============================= End Collision Detection =============================
+
 ; ============================= Start Random Generator =============================
 randomizer:
 	LDA		$0
@@ -420,7 +471,7 @@ randomizer:
 	ADC		RASTER			; Add current raster count to accumulator
 	STA		.seed			; Update seed value with new random number
 	RTS
-; ============================= Start Random Generator =============================
+; ============================= End Random Generator =============================
 
 ;----------------------------------------------
 ; Screen refresh subroutine - uses A, X, and Y
@@ -502,7 +553,7 @@ plotItemLoop:
 	DEC		COUNTER
 	LDX		COUNTER
 	LDA		PLAYERSYM,X
-	CMP		#CIRCLE				;CHECK PLAYERSYM FOR WHAT COLOUR TO SET
+	CMP		#CIRCLE				; Check PLAYERSYM for what colour to set
 	BNE		CHECKFORHEART
 	LDA		#WHITE
 	JSR		plotColour
