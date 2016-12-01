@@ -213,7 +213,7 @@ main:
 ; 
 
 
-startGame:
+startInitialization:
 	LDA		#8				; POKE 36879,8
 	STA		$900F
 
@@ -254,13 +254,20 @@ setArrayAttributes:
 clearScreen:
 	LDA		#CLEAR
 	JSR		CHROUT
+
+startGameInstance:
+	JSR		refreshScreenStart
+
+; ============================= Main Game Loop =============================
 gameLoop:
 	JSR		refreshScreen
+gameLoopSkipRefresh:
 	JSR		takeInput
-	JSR		checkCollision
-
+	JMP		checkCollision
+gameLoopContinue:
 	JMP		gameLoop
 	RTS
+; ============================= End Game Loop =============================
 
 ; ============================= Start Input =============================
 takeInput:
@@ -323,14 +330,13 @@ moveUp:
 	DEC		PLAYERY
 	JMP 	doneInput
 
-
-	;-------------------------------------------------------------------------------
-	;FIND POSITION
-	;PURPOSE: TAKES IN AN X AN Y AND RETURNS THE POSITION ON THE SCREEN TO DRAW TO
-	;	IN $00 AND $01 ($01 = MSB, $00 = LSB). 
-	;USAGE: LOAD X AND Y VALUES INTO X,Y REGISTERS S.T. 0>=X<=21, 0>=Y<=22
-	;	THEN STORE INDIRECTLY ASCII/CUSTOM CHARACTER SET NEEDED IN THAT POSITION
-
+;---------------------------------------------------------------------------------
+; Find Position
+; Purpose: Takes in an X and Y, and returns the position on the screen to draw to
+;	in $00 and $01 ($01 = MSB, $00 = LSB).
+; Usage: Load X and Y values into X,Y registers such that 0>=X<=21, 0>=Y<=22
+;	then store indirectly ascii/custom character set needed in that position.
+;---------------------------------------------------------------------------------
 
 findScreenPosition:
 	LDA		#00
@@ -351,7 +357,7 @@ add22:
 	INC		$00
 	INX
 	LDA		$00
-	CMP		#00					; CHANGED FROM 255:WOULDNT PLOT TO 1EFF?
+	CMP		#00					; Changed from 255: Wouldn't plot to 1EFF??
 	BNE		dontAddCarry	
 	INC		$01
 dontAddCarry:
@@ -366,7 +372,7 @@ plotPosition:
 	LDY		#$00
 	STA		($00),Y
 	RTS
-;--------------------------------------------------------------------------------
+;---------------------------------------------------------------------------------
 ; Find Colour
 ; Purpose: Takes in an X and Y and returns the position on the screen to draw to
 ;	In $04 and $05 ($05 = MSB, $04 = LSB)
@@ -453,8 +459,9 @@ checkCollisionLoop:
 	STA		ITEM1SYM,Y
 
 	JSR		incScore
+	JSR		refreshScreenScore
 
-	RTS	
+	JMP		gameLoopSkipRefresh
 
 noCollision0:
 	INY
@@ -465,7 +472,7 @@ noCollision2:
 
 	CPY		#$2D
 	BNE		checkCollisionLoop
-	RTS
+	JMP		gameLoopContinue
 ; ============================= End Collision Detection =============================
 
 ; ============================= Start Random Generator =============================
@@ -481,12 +488,13 @@ randomizer:
 ;----------------------------------------------
 ; Screen refresh subroutine - uses A, X, and Y
 ;----------------------------------------------
-refreshScreen:
-;	LDA		#CLEAR
-;	JSR		CHROUT
-	JSR		clearPlayField
+refreshScreenStart:
 	JSR		printScoreText
+refreshScreenScore:
 	JSR		plotCurrentScore
+
+refreshScreen:
+	JSR		clearPlayField
 	JSR		plotItem
 	JSR		delay
 
@@ -509,6 +517,11 @@ printScoreTextLoop:
 	RTS
 
 plotCurrentScore:
+	LDX		#SCOREY
+	LDY		#SCOREHUNDX
+	CLC
+	JSR		PLOT
+
 	LDA		SCOREHUND
 	CLC
 	ADC		#ZERO
