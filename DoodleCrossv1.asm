@@ -231,6 +231,12 @@ setArrayAttributes:
 	STA		PLAYERX
 	STA		PLAYERY
 
+	LDA		#$53
+	STA		ITEM1SYM
+	LDA		#3
+	STA		ITEM1X
+	STA		ITEM1Y
+
 clearScreen:
 	LDA		#CLEAR
 	JSR		CHROUT
@@ -536,3 +542,6 @@ waitLoop:
 
 score:
 	.byte	"SCORE:"
+
+.seed        
+	DC.B	$33				; Initial seed value -- new values also stored in same location
