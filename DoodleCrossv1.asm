@@ -38,7 +38,7 @@ MAXSCREENY	.equ	#22
 ZERO		.equ	$30		; CHR$ code for 0
 CIRCLE		.equ	$51		; CHR$ code for circle
 HEART		.equ	$53
-
+ENEMY		.equ	$56
 
 SCOREX		.equ	#13
 SCOREY		.equ	#0
@@ -239,6 +239,18 @@ setArrayAttributes:
 	STA		ITEM1X
 	STA		ITEM1Y
 
+	LDA		#HEART
+	STA		ITEM8SYM
+	LDA		#6
+	STA		ITEM8X
+	STA		ITEM8Y
+	
+	LDA		#HEART
+	STA		ITEM15SYM
+	LDA		#20
+	STA		ITEM15X
+	STA		ITEM15Y
+
 clearScreen:
 	LDA		#CLEAR
 	JSR		CHROUT
@@ -415,7 +427,6 @@ loadState:
 ; ============================= Start Collision Detection =============================
 checkCollision:
 	LDY		#0
-	STY		COUNTER
 
 checkCollisionLoop:
 
@@ -423,17 +434,13 @@ checkCollisionLoop:
 	CMP		#0
 	BEQ		noCollision0
 
-	LDY		COUNTER
-
 	INY
-	STY		COUNTER
 
 	LDA		ITEM1SYM,Y
 	CMP		PLAYERX
 	BNE		noCollision1
 
 	INY
-	STY		COUNTER
 
 	LDA		ITEM1SYM,Y
 	CMP		PLAYERY
@@ -441,7 +448,6 @@ checkCollisionLoop:
 
 	DEY
 	DEY
-	STY		COUNTER
 
 	LDA		#0
 	STA		ITEM1SYM,Y
@@ -456,7 +462,6 @@ noCollision1:
 	INY
 noCollision2:
 	INY
-	STY		COUNTER
 
 	CPY		#$2D
 	BNE		checkCollisionLoop
@@ -553,6 +558,10 @@ plotItemLoop:
 	DEC		COUNTER
 	LDX		COUNTER
 	LDA		PLAYERSYM,X
+	CMP		#00
+	BEQ		dontPlot
+;	LDX		COUNTER
+;	LDA		PLAYERSYM,X
 	CMP		#CIRCLE				; Check PLAYERSYM for what colour to set
 	BNE		CHECKFORHEART
 	LDA		#WHITE
@@ -658,7 +667,7 @@ delay:
 	STX		JIFFYCLOCK
 waitLoop:
 	LDX		JIFFYCLOCK
-    CPX 	#2
+    CPX 	#3
     BNE		waitLoop
     RTS
 
