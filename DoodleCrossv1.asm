@@ -4,6 +4,8 @@
 ; ======================
 CHROUT		.equ	$FFD2	; Address for kernal routine CHROUT
 PLOT		.equ	$FFF0	; Address for kernal routine PLOT
+RDTIM		.equ	$FFDE	; Memory address for read system time - uses a, x, y
+SETTIM		.equ	$FFDB	; Memory address for setting system time - uses a, x, y
 
 ; ====================
 ; | SYSTEM VARIABLES |
@@ -14,8 +16,6 @@ DDRA		.equ	$9113	; Data direction register for port A
 OUTPUTRA 	.equ	$9111	; Output register A
 DDRB		.equ	$9122	; Data direction register for port B
 OUTPUTRB 	.equ	$9120	; Output register B
-RDTIM		.equ	$FFDE	; Memory address for read system time - uses a, x, y
-SETTIM		.equ	$FFDB	; Memory address for setting system time - uses a, x, y
 JIFFYCLOCK	.equ	$00A2	; Memory address for the lowest byte in the jiffy clock (1/60th of a second)
 
 ; ==============
@@ -34,7 +34,7 @@ TIME 		.equ	$1D56
 MAXSCREENX  .equ	#21
 MAXSCREENY	.equ	#22
 ZERO		.equ	$30		; CHR$ code for 0
-CIRCLE		.equ	$51		;CHR$ code for circle
+CIRCLE		.equ	$51		; CHR$ code for circle
 
 
 
@@ -212,22 +212,22 @@ main:
 
 
 startGame:
-	LDA		#8	;POKE 36879,8
+	LDA		#8				; POKE 36879,8
 	STA		$900F
 
 	LDX		#0
 	LDA		#0
 
 initializeArray:
-	STA		SCOREHUND,x	; First item in array offset by x
+	STA		SCOREHUND,x		; First item in array offset by x
 	INX
-	CPX		#$32		; Compare with hex 32 (size of array)
+	CPX		#$32			; Compare with hex 32 (size of array)
 	BNE		initializeArray
 
 setArrayAttributes:
 	LDA		#CIRCLE
 	STA		PLAYERSYM
-	LDA		#11			; Middle of screen
+	LDA		#11				; Middle of screen
 	STA		PLAYERX
 	STA		PLAYERY
 
@@ -259,20 +259,20 @@ notRight:
 	LDA 	#0
 	STA 	DDRA
 	LDA 	OUTPUTRA
-	ASL					;shift to 5th bit
+	ASL						; Shift to 5th bit
 	ASL
 	ASL
 	LDX		#0
 	BCC 	doneInput
-	ASL					;shift to 4th bit
+	ASL						; Shift to 4th bit
 	LDX 	#0
 	BCC 	moveLeft
-	ASL					;shift to 3rd bit
+	ASL						; Shift to 3rd bit
 	BCC 	moveDown
-	ASL					;shift to 2nd bit
-	BCS 	doneInput 	;if carry is not set
+	ASL						; Shift to 2nd bit
+	BCS 	doneInput 		; If carry is not set
 	LDX		#0
-	JMP		moveUp		;else print up
+	JMP		moveUp			; Else print up
 doneInput:
 	RTS
 
@@ -308,6 +308,7 @@ moveUp:
 findScreenPosition:
 	LDA		#00
 	STY		$03
+
 initializeScreenPosition:
 	STX		$00		
 	LDA		#$1E	
@@ -323,7 +324,7 @@ add22:
 	INC		$00
 	INX
 	LDA		$00
-	CMP		#00	;CHANGED FROM 255:WOULDNT PLOT TO 1EFF?
+	CMP		#00					; CHANGED FROM 255:WOULDNT PLOT TO 1EFF?
 	BNE		dontAddCarry	
 	INC		$01
 dontAddCarry:
@@ -333,17 +334,19 @@ dontAddCarry:
 foundPosition:
 	RTS
 ;------------------------------------------------------
+
 plotPosition:
 	LDY		#$00
 	STA		($00),Y
 	RTS
-;-------------------------------------------------------------------------------
-;FIND COLOUR
-;PURPOSE: TAKES IN AN X AN Y AND RETURNS THE POSITION ON THE SCREEN TO DRAW TO
-;	IN $04 AND $05 ($05 = MSB, $04 = LSB). 
-;USAGE: LOAD X AND Y VALUES INTO X,Y REGISTERS S.T. 0>=X<=21, 0>=Y<=22
-;	AND CALL FINDCOLOURPOSITION, THEN LOAD COLOUR VALUE INTO ACCUMULATOR AND CALL
-;	PLOTCOLOUR SUBROUTINE
+;--------------------------------------------------------------------------------
+; Find Colour
+; Purpose: Takes in an X and Y and returns the position on the screen to draw to
+;	In $04 and $05 ($05 = MSB, $04 = LSB)
+; Usage: Load X and Y values into X,Y registers such that 0>=X<=21 and 0>=Y<=22
+;	and call findColourPosition, then load colour value into accumulator and call
+;	plotColour subroutine.
+;---------------------------------------------------------------------------------
 
 findColourPosition:
 ;	LDA		#$AA
@@ -351,11 +354,13 @@ findColourPosition:
 	LDA		#00
 	STA		$06
 	STY		$07
+
 initializeColourPosition:
 	STX		$04		
 	LDA		#$96	
 	STA		$05
 	LDY		#$00
+
 addCYLevels:
 	CPY		$07
 	BEQ		foundCPosition
@@ -392,7 +397,9 @@ loadState:
 	LDA		ASTORAGE
 	RTS
 
+;----------------------------------------------
 ; Screen refresh subroutine - uses A, X, and Y
+;----------------------------------------------
 refreshScreen:
 	LDA		#CLEAR
 	JSR		CHROUT
@@ -405,17 +412,17 @@ refreshScreen:
 	RTS
 	
 printScoreText:
-	LDX		#SCOREY			; Y AXIS VALUE
-	LDY		#SCOREX			; X AXIS VALUE
-	CLC						; Set carry bit - needed to call kernal routine PLOT
+	LDX		#SCOREY				; Y AXIS VALUE
+	LDY		#SCOREX				; X AXIS VALUE
+	CLC							; Set carry bit - needed to call kernal routine PLOT
 	JSR		PLOT
 	LDX		#0
 
 printScoreTextLoop:
-	LDA		score,x			; Load specific byte x into accumulator
-	JSR		CHROUT  		; Jump to character out subroutine
-	INX						; Increment x
-	CPX		#6				; Compare x with total length of string going to be outputted
+	LDA		score,x				; Load specific byte x into accumulator
+	JSR		CHROUT  			; Jump to character out subroutine
+	INX							; Increment x
+	CPX		#6					; Compare x with total length of string going to be outputted
 	BNE		printScoreTextLoop	; If not equal, branch to loop
 
 	RTS
@@ -458,7 +465,7 @@ plotItemLoop:
 	DEC		COUNTER
 	DEC		COUNTER
 	LDX		COUNTER
-	LDA		PLAYERSYM,X		; First item in array offset by x
+	LDA		PLAYERSYM,X			; First item in array offset by X
 	CMP		#0
 	BEQ		dontPlot
 	JSR		plotPosition
@@ -468,12 +475,13 @@ dontPlot:
 	INC		COUNTER
 
 	LDX		COUNTER	
-	CPX		#$30			; Compare with hex 32 (size of array)
+	CPX		#$30				; Compare with hex 32 (size of array)
 	BNE		plotItemLoop
 
 	RTS
 ; ============================= Incrementing Score =============================
-;	Uses - x
+; 	Uses - x |
+; ------------
 incScore:
 	LDX		SCOREONES
 	CPX		#9
