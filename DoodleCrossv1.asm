@@ -290,18 +290,24 @@ setArrayAttributes:
 	LDA		#3
 	STA		ITEM1X
 	STA		ITEM1Y
+	LDA		#DIRDOWN
+	STA		ITEM1DIR
 
 	LDA		#HEART
 	STA		ITEM8SYM
 	LDA		#6
 	STA		ITEM8X
 	STA		ITEM8Y
+	LDA		#DIRRIGHT
+	STA		ITEM8DIR
 	
 	LDA		#HEART
 	STA		ITEM15SYM
 	LDA		#15
 	STA		ITEM15X
 	STA		ITEM15Y
+	LDA		#DIRUP
+	STA		ITEM15DIR
 
 clearScreen:
 	LDA		#CLEAR
@@ -389,7 +395,7 @@ moveDown:
 
 moveUp:
 	LDX		PLAYERY
-	CPX		#02
+	CPX		#1
 	BEQ		doneInput
 	DEC		PLAYERY
 	JMP 	doneInput
@@ -501,9 +507,43 @@ moveItemsLoop:
 	LDX		ITEM1SYM,Y
 	CPX		#0
 	BEQ		notItem
-
-; ===== X-Axis ======
+	
 	INY						; Move to item X-axis position
+	INY						; Move to item Y-axis position
+	INY						; Move to item direction position
+
+	LDX		ITEM1SYM,Y
+
+	CPX		#DIRUP
+	BEQ		moveItemsUp
+
+	CPX		#DIRRIGHT
+	BEQ		moveItemsRight
+
+	CPX		#DIRDOWN
+	BEQ		moveItemsDown
+
+	CPX		#DIRLEFT
+	BEQ		moveItemsLeft
+
+	JMP		moveItemsNext
+
+moveItemsUp:
+	DEY						; Move to item Y-axis position
+
+	LDX		ITEM1SYM,Y		; Load current position
+	CPX		#2
+	BCC		offScreenY		; If y-axis position is < 1 position more than minimum screen
+	
+	DEX						; Increase position by 1
+	TXA
+	STA		ITEM1SYM,Y		; Store value back into memory
+
+	JMP		moveItemsCheck
+
+moveItemsRight:
+	DEY						; Move to item Y-axis position
+	DEY						; Move to item X-axis position
 
 	LDX		ITEM1SYM,Y		; Load current position
 	CPX		#MAXSCREENX	
@@ -513,17 +553,34 @@ moveItemsLoop:
 	TXA
 	STA		ITEM1SYM,Y		; Store value back into memory
 
-; ===== Y-Axis ======
 	INY						; Move to item Y-axis position
+	JMP		moveItemsCheck
+
+moveItemsDown:
+	DEY						; Move to item Y-axis position
 
 	LDX		ITEM1SYM,Y		; Load current position
 	CPX		#MAXSCREENY	
-	BCS		offScreenY		; If x-axis position is >= 1 position more than max screen x
+	BCS		offScreenY		; If y-axis position is >= 1 position more than max screen x
 	
 	INX						; Increase position by 1
 	TXA
 	STA		ITEM1SYM,Y		; Store value back into memory
 
+	JMP		moveItemsCheck
+moveItemsLeft:
+	DEY						; Move to item Y-axis position
+	DEY						; Move to item X-axis position
+
+	LDX		ITEM1SYM,Y		; Load current position
+	CPX		#1	
+	BCC		offScreenX		; If x-axis position is < 1 position more than minimum screen
+
+	DEX						; Increase position by 1
+	TXA
+	STA		ITEM1SYM,Y		; Store value back into memory
+
+	INY						; Move to item Y-axis position
 	JMP		moveItemsCheck
 
 offScreenX:
@@ -547,10 +604,13 @@ notItem:
 	INY						; Move to item Y-axis position
 moveItemsCheck:
 	INY						; Move to item direction position
+moveItemsNext:
 	INY						; Move to next item in array
 	CPY		#$3C			; Check for end of array ((Item15DIR - Item1SYM) + 1 = 3C)
-	BNE		moveItemsLoop
+	BEQ		return1
+	JMP		moveItemsLoop
 
+return1:
 	RTS
 ; ============================= End Move Items =============================
 
@@ -790,7 +850,7 @@ dontPlot:
 	INC		COUNTER				; Move to next item in array
 
 	LDX		COUNTER	
-	CPX		#$40				; Compare with hex 32 (size of array - score)
+	CPX		#$40				; Compare with hex 40 (size of array - score)
 	BEQ		return
 	JMP		plotItemLoop
 	RTS
