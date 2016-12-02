@@ -695,6 +695,9 @@ collisionPoint:
 	JSR		incScore
 	JMP		endCollisionDetection
 collisionEnemy:
+	LDA		NUMOFLIVES
+	CMP		#0
+	BEQ		endCollisionDetection
 	DEC		NUMOFLIVES
 	JMP		endCollisionDetection
 collisionPowerUp:
@@ -702,6 +705,9 @@ collisionPowerUp:
 collisionPowerDown:
 	JMP		endCollisionDetection
 collsionLife:
+	LDA		NUMOFLIVES
+	CMP		#MAXLIVES
+	BEQ		endCollisionDetection
 	INC		NUMOFLIVES
 
 endCollisionDetection:
@@ -881,14 +887,14 @@ plotItemLoop:
 	CMP		#00
 	BEQ		dontPlot
 	CMP		#CIRCLE				; Check PLAYERSYM for what colour to set
-	BNE		checkForHeart
+	BNE		checkForPoint
 	LDA		#WHITE
 	JSR		plotColour
 	JMP		plotAtPosition
-checkForHeart:
+checkForPoint:
 	LDX		COUNTER
 	LDA		PLAYERSYM,X
-	CMP		#HEART
+	CMP		#POINTSYM
 	BNE		colourEnemy
 	LDA		#GREEN
 	JSR		plotColour
@@ -965,9 +971,35 @@ spawnItemsLoop:
 	LDX		COUNTER
 	LDA		ITEM1SYM,X
 	CMP		#0				;CHECK IF ITEM IS ALREADY SPAWNED
-	BNE		spawnNextItem
-	LDA		#POINTSYM			;ADD IMPLEMENTATION FOR DIFFERENT ITEMS
+	BEQ		randomizeItem
+	JMP		spawnNextItem
+randomizeItem:
+	JSR		randomizer
+	JSR		modBy4
+	TAY
+	CPY		#1
+	BNE		dontSpawnPoint
+	LDA		#HEART			;ADD IMPLEMENTATION FOR DIFFERENT ITEMS
 	STA		ITEM1SYM,X
+	JMP		randomizeDirection
+dontSpawnPoint:
+	CPY		#2
+	BNE		dontSpawnEnemy
+
+	LDA		#ENEMYSYM
+	STA		ITEM1SYM,X
+	JMP		randomizeDirection
+dontSpawnEnemy:
+	CPY		#3
+	BNE		dontSpawnPowerUp
+	LDA		#POWERUPSYM
+	STA		ITEM1SYM,X
+	JMP		randomizeDirection
+dontSpawnPowerUp:
+	LDA		#POWERDNSYM
+	STA		ITEM1SYM,X
+randomizeDirection:
+
 	JSR		randomizer
 	JSR		modBy4
 	TAY
