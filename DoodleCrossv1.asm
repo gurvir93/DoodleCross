@@ -32,8 +32,7 @@ YSTORAGE	.equ	$1D54
 ASTORAGE	.equ	$1D55
 TIME 		.equ	$1D56
 NUMOFLIVES	.equ	$1D57
-LIVESCOUNT	.equ	$1D58
-LIVESXCOORD	.equ	$1D59
+LIVESXCOORD	.equ	$1D58
 
 MAXSCREENX  .equ	#21
 MAXSCREENY	.equ	#22
@@ -232,7 +231,7 @@ initializeLives:
 	LDA		#FSTLIVEPS
 	STA		LIVESXCOORD
 	LDA		#0
-	STA		LIVESCOUNT
+	STA		COUNTER
 	
 initializeArray:
 	STA		SCOREHUND,x		; First item in array offset by x
@@ -531,8 +530,12 @@ printLivesTextLoop:
 	BNE		printLivesTextLoop	; If not equal, branch to loop
 	RTS
 	
+
 plotCurrentLives:
-	LDX		LIVESCOUNT			; Load counter of lives
+	LDA		#0
+	STA		COUNTER				; Clear counter
+plotLives:
+	LDX		COUNTER				; Load counter of lives
 	CPX		NUMOFLIVES			; Compare to number of lives
 	BEQ		endPlotCurrLives	; Branch to endPrintCurrLives if the counter = number of lives
 	LDX		#LIVESY				; Load y coordinate for lives
@@ -541,18 +544,18 @@ plotCurrentLives:
 	JSR		PLOT				; Move cursor
 	LDA		#$73				; Load character for heart
 	JSR		CHROUT				; Plot heart
-	LDX		LIVESCOUNT
+	LDX		COUNTER
 	INX							; Increment counter
-	STX		LIVESCOUNT			; Update counter
+	STX		COUNTER				; Update counter
 	INY							; Increment X Coordinate for printing lives
 	STY		LIVESXCOORD			; Update x coordinate for printing lives
-	JMP		plotCurrentLives
+	JMP		plotLives
 	
 endPlotCurrLives:
-	LDA		#1
-	STA		LIVESCOUNT
+	LDA		#0
+	STA		COUNTER				; Clear counter
 	LDX		#FSTLIVEPS
-	STX		LIVESXCOORD	
+	STX		LIVESXCOORD			; Reset x coordinate of lives to the initial printing point
 	LDX		#0
 	RTS
 	
