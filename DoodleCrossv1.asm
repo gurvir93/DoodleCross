@@ -54,6 +54,11 @@ SCOREY		.equ	#0
 SCOREHUNDX	.equ	#19
 SCORETENSX	.equ	#20
 STOREONESX	.equ	#21
+
+DIRUP		.equ	#1
+DIRRIGHT	.equ	#2
+DIRDOWN		.equ	#3
+DIRLEFT		.equ	#4
 ; ----------------------
 
 ; --- Array of Objects ---
@@ -64,66 +69,83 @@ SCOREONES	.equ	$1D02
 PLAYERSYM	.equ	$1D03
 PLAYERX		.equ	$1D04
 PLAYERY		.equ	$1D05
+PLAYERASSET	.equ	$1D06
 
-ITEM1SYM	.equ	$1D06
-ITEM1X		.equ	$1D07
-ITEM1Y		.equ	$1D08
+ITEM1SYM	.equ	$1D07
+ITEM1X		.equ	$1D08
+ITEM1Y		.equ	$1D09
+ITEM1DIR	.equ	$1D0A
 
-ITEM2SYM	.equ	$1D09
-ITEM2X		.equ	$1D0A
-ITEM2Y		.equ	$1D0B
+ITEM2SYM	.equ	$1D0B
+ITEM2X		.equ	$1D0C
+ITEM2Y		.equ	$1D0D
+ITEM2DIR	.equ	$1D0E
 
-ITEM3SYM	.equ	$1D0C
-ITEM3X		.equ	$1D0D
-ITEM3Y		.equ	$1D0E
+ITEM3SYM	.equ	$1D0F
+ITEM3X		.equ	$1D10
+ITEM3Y		.equ	$1D11
+ITEM3DIR	.equ	$1D12
 
-ITEM4SYM	.equ	$1D0F
-ITEM4X		.equ	$1D10
-ITEM4Y		.equ	$1D11
+ITEM4SYM	.equ	$1D13
+ITEM4X		.equ	$1D14
+ITEM4Y		.equ	$1D15
+ITEM4DIR	.equ	$1D16
 
-ITEM5SYM	.equ	$1D12
-ITEM5X		.equ	$1D13
-ITEM5Y		.equ	$1D14
+ITEM5SYM	.equ	$1D17
+ITEM5X		.equ	$1D18
+ITEM5Y		.equ	$1D19
+ITEM5DIR	.equ	$1D1A
 
-ITEM6SYM	.equ	$1D15
-ITEM6X		.equ	$1D16
-ITEM6Y		.equ	$1D17
+ITEM6SYM	.equ	$1D1B
+ITEM6X		.equ	$1D1C
+ITEM6Y		.equ	$1D1D
+ITEM6DIR	.equ	$1D1E
 
-ITEM7SYM	.equ	$1D18
-ITEM7X		.equ	$1D19
-ITEM7Y		.equ	$1D1A
+ITEM7SYM	.equ	$1D1F
+ITEM7X		.equ	$1D20
+ITEM7Y		.equ	$1D21
+ITEM7DIR	.equ	$1D22
 
-ITEM8SYM	.equ	$1D1B
-ITEM8X		.equ	$1D1C
-ITEM8Y		.equ	$1D1D
+ITEM8SYM	.equ	$1D23
+ITEM8X		.equ	$1D24
+ITEM8Y		.equ	$1D25
+ITEM8DIR	.equ	$1D26
 
-ITEM9SYM	.equ	$1D1E
-ITEM9X		.equ	$1D1F
-ITEM9Y		.equ	$1D20
+ITEM9SYM	.equ	$1D27
+ITEM9X		.equ	$1D28
+ITEM9Y		.equ	$1D29
+ITEM9DIR	.equ	$1D2A
 
-ITEM10SYM	.equ	$1D21
-ITEM10X		.equ	$1D22
-ITEM10Y		.equ	$1D23
+ITEM10SYM	.equ	$1D2B
+ITEM10X		.equ	$1D2C
+ITEM10Y		.equ	$1D2D
+ITEM10DIR	.equ	$1D2E
 
-ITEM11SYM	.equ	$1D24
-ITEM11X		.equ	$1D25
-ITEM11Y		.equ	$1D26
+ITEM11SYM	.equ	$1D2F
+ITEM11X		.equ	$1D30
+ITEM11Y		.equ	$1D31
+ITEM11DIR	.equ	$1D32
 
-ITEM12SYM	.equ	$1D27
-ITEM12X		.equ	$1D28
-ITEM12Y		.equ	$1D29
+ITEM12SYM	.equ	$1D33
+ITEM12X		.equ	$1D34
+ITEM12Y		.equ	$1D35
+ITEM12DIR	.equ	$1D36
 
-ITEM13SYM	.equ	$1D2A
-ITEM13X		.equ	$1D2B
-ITEM13Y		.equ	$1D2C
+ITEM13SYM	.equ	$1D37
+ITEM13X		.equ	$1D38
+ITEM13Y		.equ	$1D39
+ITEM13DIR	.equ	$1D3A
 
-ITEM14SYM	.equ	$1D2D
-ITEM14X		.equ	$1D2E
-ITEM14Y		.equ	$1D2F
+ITEM14SYM	.equ	$1D3B
+ITEM14X		.equ	$1D3C
+ITEM14Y		.equ	$1D3D
+ITEM14DIR	.equ	$1D3E
 
-ITEM15SYM	.equ	$1D30
-ITEM15X		.equ	$1D31
-ITEM15Y		.equ	$1D32
+ITEM15SYM	.equ	$1D3F
+ITEM15X		.equ	$1D40
+ITEM15Y		.equ	$1D41
+ITEM15DIR	.equ	$1D42
+
 ; ------------------------
 
 main: 
@@ -158,68 +180,82 @@ main:
 ;	$1D03 - Ascii value (Circle: $51)
 ;	$1D04 - X coordinate
 ;	$1D05 - Y coordinate
+;	$1D06 - Extra player value
 ; Item1 (3 bytes)
-;	$1D06 - Ascii value
-;	$1D07 - X coordinate
-;	$1D08 - Y coordinate
+;	$1D07 - Ascii value
+;	$1D08 - X coordinate
+;	$1D09 - Y coordinate
+;	$1D0A - Item 1 direction
 ; Item2 (3 bytes)
-;	$1D09 - Ascii value
-;	$1D0A - X coordinate
-;	$1D0B - Y coordinate
+;	$1D0B - Ascii value
+;	$1D0C - X coordinate
+;	$1D0D - Y coordinate
+;	$1D0E - Item 2 direction
 ; Item3 (3 bytes)
-;	$1D0C - Ascii value
-;	$1D0D - X coordinate
-;	$1D0E - Y coordinate
-; Item4 (3 bytes)
 ;	$1D0F - Ascii value
 ;	$1D10 - X coordinate
 ;	$1D11 - Y coordinate
+;	$1D12 - Item 3 direction
+; Item4 (3 bytes)
+;	$1D13 - Ascii value
+;	$1D14 - X coordinate
+;	$1D15 - Y coordinate
+;	$1D16 - Item 4 direction
 ; Item5 (3 bytes)
-;	$1D12 - Ascii value
-;	$1D13 - X coordinate
-;	$1D14 - Y coordinate
+;	$1D17 - Ascii value
+;	$1D18 - X coordinate
+;	$1D19 - Y coordinate
+;	$1D1A - Item 5 direction
 ; Item6 (3 bytes)
-;	$1D15 - Ascii value
-;	$1D16 - X coordinate
-;	$1D17 - Y coordinate
-; Item7 (3 bytes)
-;	$1D18 - Ascii value
-;	$1D19 - X coordinate
-;	$1D1A - Y coordinate
-; Item8 (3 bytes)
 ;	$1D1B - Ascii value
 ;	$1D1C - X coordinate
 ;	$1D1D - Y coordinate
+;	$1D1E - Item 6 direction
+; Item7 (3 bytes)
+;	$1D1F - Ascii value
+;	$1D20 - X coordinate
+;	$1D21 - Y coordinate
+;	$1D22 - Item 7 direction
+; Item8 (3 bytes)
+;	$1D23 - Ascii value
+;	$1D24 - X coordinate
+;	$1D25 - Y coordinate
+;	$1D26 - Item 8 direction
 ; Item9 (3 bytes)
-;	$1D1E - Ascii value
-;	$1D1F - X coordinate
-;	$1D20 - Y coordinate
-; Item10 (3 bytes)
-;	$1D21 - Ascii value
-;	$1D22 - X coordinate
-;	$1D23 - Y coordinate
-; Item11 (3 bytes)
-;	$1D24 - Ascii value
-;	$1D25 - X coordinate
-;	$1D26 - Y coordinate
-; Item12 (3 bytes)
 ;	$1D27 - Ascii value
 ;	$1D28 - X coordinate
 ;	$1D29 - Y coordinate
+;	$1D2A - Item 9 direction
+; Item10 (3 bytes)
+;	$1D2B - Ascii value
+;	$1D2C - X coordinate
+;	$1D2D - Y coordinate
+;	$1D2E - Item 10 direction
+; Item11 (3 bytes)
+;	$1D2F - Ascii value
+;	$1D30 - X coordinate
+;	$1D31 - Y coordinate
+;	$1D32 - Item 11 direction
+; Item12 (3 bytes)
+;	$1D33 - Ascii value
+;	$1D34 - X coordinate
+;	$1D35 - Y coordinate
+;	$1D36 - Item 12 direction
 ; Item13 (3 bytes)
-;	$1D2A - Ascii value
-;	$1D2B - X coordinate
-;	$1D2C - Y coordinate
+;	$1D37 - Ascii value
+;	$1D38 - X coordinate
+;	$1D39 - Y coordinate
+;	$1D3A - Item 13 direction
 ; Item14 (3 bytes)
-;	$1D2D - Ascii value
-;	$1D2E - X coordinate
-;	$1D2F - Y coordinate
+;	$1D3B - Ascii value
+;	$1D3C - X coordinate
+;	$1D3D - Y coordinate
+;	$1D3E - Item 14 direction
 ; Item15 (3 bytes)
-;	$1D30 - Ascii value
-;	$1D31 - X coordinate
-;	$1D32 - Y coordinate
-
-; 
+;	$1D3F - Ascii value
+;	$1D40 - X coordinate
+;	$1D41 - Y coordinate
+;	$1D42 - Item 15 direction
 
 startInitialization:
 	LDA		#8				; POKE 36879,8
@@ -239,7 +275,7 @@ initializeLives:
 initializeArray:
 	STA		SCOREHUND,x		; First item in array offset by x
 	INX
-	CPX		#$32			; Compare with hex 32 (size of array)
+	CPX		#$42			; Compare with hex 32 (size of array)
 	BNE		initializeArray
 
 setArrayAttributes:
@@ -510,8 +546,9 @@ notItem:
 	INY						; Move to item X-axis position
 	INY						; Move to item Y-axis position
 moveItemsCheck:
+	INY						; Move to item direction position
 	INY						; Move to next item in array
-	CPY		#$2D			; Check for end of array ((Item15Y - Item1SYM) + 1 = 2D)
+	CPY		#$3C			; Check for end of array ((Item15DIR - Item1SYM) + 1 = 3C)
 	BNE		moveItemsLoop
 
 	RTS
@@ -528,20 +565,20 @@ checkCollisionLoop:
 	CMP		#0
 	BEQ		noCollision0
 
-	INY
+	INY						; Move to item X-axis position
 
 	LDA		ITEM1SYM,Y
 	CMP		PLAYERX
 	BNE		noCollision1
 
-	INY
+	INY						; Move to item Y-axis position
 
 	LDA		ITEM1SYM,Y
 	CMP		PLAYERY
 	BNE		noCollision2
 
-	DEY
-	DEY
+	DEY						; Move to item X-axis position
+	DEY						; Move to item symbol position
 
 	LDA		#0
 	STA		ITEM1SYM,Y
@@ -553,13 +590,14 @@ checkCollisionLoop:
 	JMP		gameLoopSkipRefresh
 
 noCollision0:
-	INY
+	INY						; Move to item X-axis position
 noCollision1:
-	INY
+	INY						; Move to item Y-axis position
 noCollision2:
-	INY
+	INY						; Move to item symbol position
+	INY						; Move to next item in array
 
-	CPY		#$2D
+	CPY		#$3C			; Check for end of array ((Item15DIR - Item1SYM) + 1 = 3C)
 	BNE		checkCollisionLoop
 	JMP		gameLoopContinue
 ; ============================= End Collision Detection =============================
@@ -692,39 +730,37 @@ plotCurrentScore:
 
 plotItem:
 	LDX		#0
-	STX		COUNTER
+	STX		COUNTER				; First position in array
 
 plotItemLoop:
-	INC		COUNTER
+	INC		COUNTER				; Move to item X-axis position
 
 	LDY		COUNTER
 	LDX		PLAYERSYM,Y
-	INC		COUNTER
+	INC		COUNTER				; Move to item Y-axis position
 	TXA
 	LDX		COUNTER
 	LDY		PLAYERSYM,X
 	TAX
 	JSR		findScreenPosition
 
-	DEC		COUNTER
+	DEC		COUNTER				; Move to item X-axis position
 
 	LDY		COUNTER
 	LDX		PLAYERSYM,Y
-	INC		COUNTER
+	INC		COUNTER				; Move to item Y-axis position
 	TXA
 	LDX		COUNTER
 	LDY		PLAYERSYM,X
 	TAX
 	JSR		findColourPosition
 
-	DEC		COUNTER
-	DEC		COUNTER
+	DEC		COUNTER				; Move to item X-axis position
+	DEC		COUNTER				; Move to item symbol position
 	LDX		COUNTER
 	LDA		PLAYERSYM,X
 	CMP		#00
 	BEQ		dontPlot
-;	LDX		COUNTER
-;	LDA		PLAYERSYM,X
 	CMP		#CIRCLE				; Check PLAYERSYM for what colour to set
 	BNE		checkForHeart
 	LDA		#WHITE
@@ -741,28 +777,24 @@ checkForHeart:
 colourEnemy:
 	LDA		#RED
 	JSR		plotColour	
-
-
 plotAtPosition:
-;	DEC		COUNTER
-;	DEC		COUNTER
 	LDX		COUNTER
 	LDA		PLAYERSYM,X			; First item in array offset by X
 	CMP		#0
 	BEQ		dontPlot
 	JSR		plotPosition
 dontPlot:
-	INC		COUNTER
-	INC		COUNTER
-	INC		COUNTER
+	INC		COUNTER				; Move to item X-axis position
+	INC		COUNTER				; Move to item Y-axis position
+	INC		COUNTER				; Move to item direction position
+	INC		COUNTER				; Move to next item in array
 
 	LDX		COUNTER	
-	CPX		#$30				; Compare with hex 32 (size of array)
-	BNE		plotItemLoop
-
-
-
+	CPX		#$40				; Compare with hex 32 (size of array - score)
+	BEQ		return
+	JMP		plotItemLoop
 	RTS
+
 ; ============================= Incrementing Score =============================
 ; 	Uses - x |
 ; ------------
