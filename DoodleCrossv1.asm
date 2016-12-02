@@ -288,55 +288,55 @@ setArrayAttributes:
 	STA		PLAYERX
 	STA		PLAYERY
 
-	LDA		#POINTSYM
-	STA		ITEM1SYM
-	LDA		#3
-	STA		ITEM1X
-	STA		ITEM1Y
-	LDA		#DIRDOWN
-	STA		ITEM1DIR
+;	LDA		#POINTSYM
+;	STA		ITEM1SYM
+;	LDA		#3
+;	STA		ITEM1X
+;	STA		ITEM1Y
+;	LDA		#DIRDOWN
+;	STA		ITEM1DIR
 
-	LDA		#ENEMYSYM
-	STA		ITEM8SYM
-	LDA		#6
-	STA		ITEM8X
-	STA		ITEM8Y
-	LDA		#DIRRIGHT
-	STA		ITEM8DIR
+;	LDA		#ENEMYSYM
+;	STA		ITEM8SYM
+;	LDA		#6
+;	STA		ITEM8X
+;	STA		ITEM8Y
+;	LDA		#DIRRIGHT
+;	STA		ITEM8DIR
 	
-	LDA		#LIFESYM
-	STA		ITEM15SYM
-	LDA		#0
-	STA		ITEM15X
-	LDA		#1
-	STA		ITEM15Y
-	LDA		#DIRRIGHT
-	STA		ITEM15DIR
+;	LDA		#LIFESYM
+;	STA		ITEM15SYM
+;	LDA		#0
+;	STA		ITEM15X
+;	LDA		#1
+;	STA		ITEM15Y
+;	LDA		#DIRRIGHT
+;	STA		ITEM15DIR
 
-	LDA		#POINTSYM
-	STA		ITEM2SYM
-	LDA		#20
-	STA		ITEM2X
-	STA		ITEM2Y
-	LDA		#DIRLEFT
-	STA		ITEM2DIR
+;	LDA		#POINTSYM
+;	STA		ITEM2SYM
+;	LDA		#20
+;	STA		ITEM2X
+;	STA		ITEM2Y
+;	LDA		#DIRLEFT
+;	STA		ITEM2DIR
 
-	LDA		#POWERUPSYM
-	STA		ITEM3SYM
-	LDA		#15
-	STA		ITEM3X
-	STA		ITEM3Y
-	LDA		#DIRUP
-	STA		ITEM3DIR
+;	LDA		#POWERUPSYM
+;	STA		ITEM3SYM
+;	LDA		#15
+;	STA		ITEM3X
+;	STA		ITEM3Y
+;	LDA		#DIRUP
+;	STA		ITEM3DIR
 
-	LDA		#POWERDNSYM
-	STA		ITEM4SYM
-	LDA		#6
-	STA		ITEM4X
-	LDA		#21
-	STA		ITEM4Y
-	LDA		#DIRUP
-	STA		ITEM4DIR
+;	LDA		#POWERDNSYM
+;	STA		ITEM4SYM
+;	LDA		#6
+;	STA		ITEM4X
+;	LDA		#21
+;	STA		ITEM4Y
+;	LDA		#DIRUP
+;	STA		ITEM4DIR
 
 clearScreen:
 	LDA		#CLEAR
@@ -348,12 +348,12 @@ startGameInstance:
 	LDA		#4
 	STA		GAMESPEED
 	JSR		refreshScreenStart
-
 ; ============================= Main Game Loop =============================
 gameLoop:
 	LDA		GAMECOUNTER
 	CMP		GAMESPEED
 	BNE		gameLoopRefreshCont
+	JSR		spawnItems
 	JSR		moveItems
 	LDA		#0
 	STA		GAMECOUNTER
@@ -744,7 +744,7 @@ refreshScreenScore:
 refreshScreen:
 	JSR		clearPlayField
 	JSR		plotItem
-	JSR		delay
+	;JSR		delay
 
 	RTS
 
@@ -949,7 +949,126 @@ incScoreHunds:
 	STX		SCOREONES
 	RTS
 ; ============================= END Incrementing Score =============================
+;ITEM STRUCTURE:
+;	SYMBOL
+;	X
+;	Y
+;	DIRECTION: 1 - UP
+;			   2 - RIGHT
+;			   3 - DOWN
+;			   4 - LEFT
 
+spawnItems:
+	LDA		#0
+	STA		COUNTER
+spawnItemsLoop:
+	LDX		COUNTER
+	LDA		ITEM1SYM,X
+	CMP		#0				;CHECK IF ITEM IS ALREADY SPAWNED
+	BNE		spawnNextItem
+	LDA		#POINTSYM			;ADD IMPLEMENTATION FOR DIFFERENT ITEMS
+	STA		ITEM1SYM,X
+	JSR		randomizer
+	JSR		modBy4
+	TAY
+	INY						;INCREASE NUMBER SO RANDOM NUMBER IS
+	TYA						;	INBETWEEN 1 - 4
+	INX						;MOVE X TO DIRECTION POSITION OF ITEM
+	INX
+	INX
+	STA		ITEM1SYM,X
+	CMP		#DIRUP
+	BNE		checkDirRight
+	DEX						;MOVE TO YPOSITION OF ITEM
+
+	LDA		#MAXSCREENY		;UP MOVING ITEM SPAWNS AT BOTTOM
+	STA		ITEM1SYM,X
+	DEX						;MOVE TO XPOSITION OF ITEM
+	JSR		randomizer
+	JSR		modBy22
+	STA		ITEM1SYM,X
+	JMP		spawnNextItem
+checkDirRight:
+	CMP		#DIRRIGHT
+	BNE		checkDirDown
+	DEX						;MOVE TO YPOSITION OF ITEM
+	JSR		randomizer
+	JSR		modBy22
+	TAY
+	INY
+	TYA
+	STA		ITEM1SYM,X
+	DEX						;MOVE TO XPOSITION
+	LDA		#0
+	STA		ITEM1SYM,X
+	JMP		spawnNextItem
+checkDirDown:
+	CMP		#DIRDOWN
+	BNE		checkDirLeft
+	
+	DEX						;MOVE TO YPOSITION
+	LDA		#1
+	STA		ITEM1SYM,X
+	
+	DEX						;MOVE TO XPOSITION
+	JSR		randomizer		;GENERATE RANDOM X POSITION
+	JSR		modBy22
+	STA		ITEM1SYM,X
+	JMP		spawnNextItem
+checkDirLeft:
+	DEX						;MOVE TO YPOSITION
+	JSR		randomizer
+	JSR		modBy22
+	TAY						;INCREMENT POSITION SO DOESNT SPAWN
+	INY						;	AT TOP OF SCREEN
+	TYA
+	STA		ITEM1SYM,X
+	DEX						;MOVE TO XPOSITION
+	LDA		#MAXSCREENX
+	STA		ITEM1SYM,X
+spawnNextItem:
+	INC		COUNTER			;AT ITEMSYM, MOVE TO ITEMX
+	INC		COUNTER			;AT ITEMX, MOVE TO ITEMY
+	INC		COUNTER			;AT ITEMY, MOVE TO ITEMDIR
+	INC		COUNTER			;AT	ITEMDIR, MOVE TO NEXT ITEM
+
+	LDX		COUNTER
+	CPX		#60
+	BEQ		doneSpawning
+	JMP		spawnItemsLoop
+doneSpawning:
+	RTS
+
+	;-------------------------------------------------------------------------------
+	;MOD BY 3
+	;PURPOSE: FINDS THE REMAINDER OF A NUMBER DIVIDED BY 3
+	;USAGE: LDA	#<NUMBER>
+	;		JSR	modBy4
+modBy4:
+divideBy4:
+	SEC
+	SBC		#4
+	BCS		divideBy4
+findRemainder4:
+	CLC
+	ADC		#4
+;	STA		$1D00
+	RTS
+	;-------------------------------------------------------------------------------
+	;MOD BY 22
+	;PURPOSE: FINDS THE REMAINDER OF A NUMBER DIVIDED BY 22
+	;USAGE: LDA	#<NUMBER>
+	;		JSR	modBy22
+modBy22:
+divideBy22:
+	SEC
+	SBC		#22
+	BCS		divideBy22
+findRemainder22:
+	CLC
+	ADC		#22
+;	STA		$1D00
+	RTS
 
 ;-------------------------------------------------------------------------------
 ; Find Playfield
