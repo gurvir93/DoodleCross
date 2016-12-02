@@ -263,7 +263,7 @@ setArrayAttributes:
 	
 	LDA		#HEART
 	STA		ITEM15SYM
-	LDA		#20
+	LDA		#15
 	STA		ITEM15X
 	STA		ITEM15Y
 
@@ -274,7 +274,7 @@ clearScreen:
 startGameInstance:
 	LDA		#0
 	STA		GAMECOUNTER
-	LDA		#3
+	LDA		#4
 	STA		GAMESPEED
 	JSR		refreshScreenStart
 
@@ -465,22 +465,53 @@ moveItemsLoop:
 	LDX		ITEM1SYM,Y
 	CPX		#0
 	BEQ		notItem
-	
-	INY
 
-	LDX		ITEM1SYM,Y
-	INX
+; ===== X-Axis ======
+	INY						; Move to item X-axis position
+
+	LDX		ITEM1SYM,Y		; Load current position
+	CPX		#MAXSCREENX	
+	BCS		offScreenX		; If x-axis position is >= 1 position more than max screen x
+
+	INX						; Increase position by 1
 	TXA
-	STA		ITEM1SYM,Y
+	STA		ITEM1SYM,Y		; Store value back into memory
+
+; ===== Y-Axis ======
+	INY						; Move to item Y-axis position
+
+	LDX		ITEM1SYM,Y		; Load current position
+	CPX		#MAXSCREENY	
+	BCS		offScreenY		; If x-axis position is >= 1 position more than max screen x
+	
+	INX						; Increase position by 1
+	TXA
+	STA		ITEM1SYM,Y		; Store value back into memory
 
 	JMP		moveItemsCheck
 
+offScreenX:
+	DEY
+	LDA		#0
+	STA		ITEM1SYM,Y
+	INY
+	INY
+	JMP		moveItemsCheck
+offScreenY:
+	DEY
+	DEY
+	LDA		#0
+	STA		ITEM1SYM,Y
+	INY
+	INY
+	JMP		moveItemsCheck
+
 notItem:
-	INY
+	INY						; Move to item X-axis position
+	INY						; Move to item Y-axis position
 moveItemsCheck:
-	INY
-	INY
-	CPY		#$2D
+	INY						; Move to next item in array
+	CPY		#$2D			; Check for end of array ((Item15Y - Item1SYM) + 1 = 2D)
 	BNE		moveItemsLoop
 
 	RTS
