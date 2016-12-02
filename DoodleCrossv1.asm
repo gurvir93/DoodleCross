@@ -24,25 +24,28 @@ GREEN		.equ	$05
 ; | MEMORY MAP |
 ; ==============
 ; --- User Variables ---
-ENEMYSYM	.equ	$1D50
-POINTSYM	.equ	$1D51
-COUNTER		.equ	$1D52
-XSTORAGE	.equ	$1D53
-YSTORAGE	.equ	$1D54
-ASTORAGE	.equ	$1D55
-TIME 		.equ	$1D56
-NUMOFLIVES	.equ	$1D57
-LIVESXCOORD	.equ	$1D58
-GAMECOUNTER .equ	$1D59
-GAMESPEED	.equ	$1D60
+COUNTER		.equ	$1D50
+XSTORAGE	.equ	$1D51
+YSTORAGE	.equ	$1D52
+ASTORAGE	.equ	$1D53
+TIME 		.equ	$1D54
+NUMOFLIVES	.equ	$1D55
+LIVESXCOORD	.equ	$1D56
+GAMECOUNTER .equ	$1D57
+GAMESPEED	.equ	$1D58
 
 MAXSCREENX  .equ	#21
 MAXSCREENY	.equ	#22
 ZERO		.equ	$30		; CHR$ code for 0
 CIRCLE		.equ	$51		; CHR$ code for circle
 HEART		.equ	$53
-ENEMY		.equ	$56
 SPACE		.equ	$20
+
+ENEMYSYM	.equ	$66		; Weird square
+POINTSYM	.equ	$5A		; Diamond
+POWERUPSYM	.equ	$41		; Spade
+POWERDNSYM	.equ	$56		; X
+LIFESYM		.equ	$53		; Heart
 
 INITLIVES	.equ	#3
 LIVESX		.equ	#0
@@ -285,7 +288,7 @@ setArrayAttributes:
 	STA		PLAYERX
 	STA		PLAYERY
 
-	LDA		#HEART
+	LDA		#POINTSYM
 	STA		ITEM1SYM
 	LDA		#3
 	STA		ITEM1X
@@ -293,7 +296,7 @@ setArrayAttributes:
 	LDA		#DIRDOWN
 	STA		ITEM1DIR
 
-	LDA		#HEART
+	LDA		#ENEMYSYM
 	STA		ITEM8SYM
 	LDA		#6
 	STA		ITEM8X
@@ -301,13 +304,39 @@ setArrayAttributes:
 	LDA		#DIRRIGHT
 	STA		ITEM8DIR
 	
-	LDA		#HEART
+	LDA		#LIFESYM
 	STA		ITEM15SYM
-	LDA		#15
+	LDA		#0
 	STA		ITEM15X
+	LDA		#1
 	STA		ITEM15Y
-	LDA		#DIRUP
+	LDA		#DIRRIGHT
 	STA		ITEM15DIR
+
+	LDA		#POINTSYM
+	STA		ITEM2SYM
+	LDA		#20
+	STA		ITEM2X
+	STA		ITEM2Y
+	LDA		#DIRLEFT
+	STA		ITEM2DIR
+
+	LDA		#POWERUPSYM
+	STA		ITEM3SYM
+	LDA		#15
+	STA		ITEM3X
+	STA		ITEM3Y
+	LDA		#DIRUP
+	STA		ITEM3DIR
+
+	LDA		#POWERDNSYM
+	STA		ITEM4SYM
+	LDA		#6
+	STA		ITEM4X
+	LDA		#21
+	STA		ITEM4Y
+	LDA		#DIRUP
+	STA		ITEM4DIR
 
 clearScreen:
 	LDA		#CLEAR
@@ -620,7 +649,6 @@ checkCollision:
 	LDY		#0
 
 checkCollisionLoop:
-
 	LDA		ITEM1SYM,Y
 	CMP		#0
 	BEQ		noCollision0
@@ -637,16 +665,47 @@ checkCollisionLoop:
 	CMP		PLAYERY
 	BNE		noCollision2
 
+collisionDetected:
 	DEY						; Move to item X-axis position
 	DEY						; Move to item symbol position
 
+	LDX		ITEM1SYM,Y
+
 	LDA		#0
-	STA		ITEM1SYM,Y
+	STA		ITEM1SYM,Y		; Reset symbol
 
-	DEC		NUMOFLIVES
+	CPX		#POINTSYM
+	BEQ		collisionPoint
+
+	CPX		#ENEMYSYM
+	BEQ		collisionEnemy
+
+	CPX		#POWERUPSYM
+	BEQ		collisionPowerUp
+
+	CPX		#POWERDNSYM
+	BEQ		collisionPowerDown
+
+	CPX		#LIFESYM
+	BEQ		collsionLife
+
+	JMP		gameLoopSkipRefresh
+
+collisionPoint:
 	JSR		incScore
-	JSR		refreshScreenScore
+	JMP		endCollisionDetection
+collisionEnemy:
+	DEC		NUMOFLIVES
+	JMP		endCollisionDetection
+collisionPowerUp:
+	JMP		endCollisionDetection
+collisionPowerDown:
+	JMP		endCollisionDetection
+collsionLife:
+	INC		NUMOFLIVES
 
+endCollisionDetection:
+	JSR		refreshScreenScore
 	JMP		gameLoopSkipRefresh
 
 noCollision0:
