@@ -34,17 +34,19 @@ TIME 		.equ	$1D56
 NUMOFLIVES	.equ	$1D57
 LIVESXCOORD	.equ	$1D58
 
+
 MAXSCREENX  .equ	#21
 MAXSCREENY	.equ	#22
 ZERO		.equ	$30		; CHR$ code for 0
 CIRCLE		.equ	$51		; CHR$ code for circle
 HEART		.equ	$53
 ENEMY		.equ	$56
+SPACE		.equ	$20
 
 INITLIVES	.equ	#3
 LIVESX		.equ	#0
 LIVESY		.equ	#0
-FSTLIVEPS	.equ	#6		; position to plot first life
+MAXLIVES	.equ	#6		; position to plot first life//max number of lives
 
 SCOREX		.equ	#13
 SCOREY		.equ	#0
@@ -228,7 +230,7 @@ startInitialization:
 initializeLives:
 	LDA		#INITLIVES
 	STA		NUMOFLIVES
-	LDA		#FSTLIVEPS
+	LDA		#MAXLIVES
 	STA		LIVESXCOORD
 	LDA		#0
 	STA		COUNTER
@@ -471,6 +473,7 @@ checkCollisionLoop:
 	LDA		#0
 	STA		ITEM1SYM,Y
 
+	DEC		NUMOFLIVES
 	JSR		incScore
 	JSR		refreshScreenScore
 
@@ -537,7 +540,7 @@ plotCurrentLives:
 plotLives:
 	LDX		COUNTER				; Load counter of lives
 	CPX		NUMOFLIVES			; Compare to number of lives
-	BEQ		endPlotCurrLives	; Branch to endPrintCurrLives if the counter = number of lives
+	BEQ		plotSpaces			; Branch to endPrintCurrLives if the counter = number of lives
 	LDX		#LIVESY				; Load y coordinate for lives
 	LDY		LIVESXCOORD			; Load x coordinate for lives
 	CLC		
@@ -550,11 +553,26 @@ plotLives:
 	INY							; Increment X Coordinate for printing lives
 	STY		LIVESXCOORD			; Update x coordinate for printing lives
 	JMP		plotLives
-	
+plotSpaces:
+	LDX		COUNTER
+	CPX		#MAXLIVES
+	BEQ		endPlotCurrLives
+	LDX		#LIVESY
+	LDY		LIVESXCOORD
+	CLC
+	JSR		PLOT
+	LDA		#SPACE
+	JSR		CHROUT
+	LDX		COUNTER
+	INX
+	STX		COUNTER
+	INY
+	STY		LIVESXCOORD
+	JMP		plotSpaces
 endPlotCurrLives:
 	LDA		#0
 	STA		COUNTER				; Clear counter
-	LDX		#FSTLIVEPS
+	LDX		#MAXLIVES
 	STX		LIVESXCOORD			; Reset x coordinate of lives to the initial printing point
 	LDX		#0
 	RTS
@@ -570,7 +588,7 @@ printScoreTextLoop:
 	LDA		score,x				; Load specific byte x into accumulator
 	JSR		CHROUT  			; Jump to character out subroutine
 	INX							; Increment x
-	CPX		#6					; Compare x with total length of string going to be outputted
+	CPX		#6					; Compare x with the total length of string going to be outputted
 	BNE		printScoreTextLoop	; If not equal, branch to loop
 
 	RTS
@@ -719,7 +737,7 @@ clearPlayField:
 	LDX		#00
 ;	CLC
 clearLoop1:
-	LDA		#32
+	LDA		#SPACE
 	STA		$1E16,X
 	INX
 	CPX		#255
@@ -727,7 +745,7 @@ clearLoop1:
 ;	BCC		clearLoop1
 	LDX		#00
 clearLoop2:
-	LDA		#32
+	LDA		#SPACE
 	STA		$1F15,X
 	INX
 	CPX		#229
