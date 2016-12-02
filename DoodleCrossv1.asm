@@ -33,7 +33,8 @@ ASTORAGE	.equ	$1D55
 TIME 		.equ	$1D56
 NUMOFLIVES	.equ	$1D57
 LIVESXCOORD	.equ	$1D58
-
+GAMECOUNTER .equ	$1D59
+GAMESPEED	.equ	$1D60
 
 MAXSCREENX  .equ	#21
 MAXSCREENY	.equ	#22
@@ -271,15 +272,27 @@ clearScreen:
 	JSR		CHROUT
 
 startGameInstance:
+	LDA		#0
+	STA		GAMECOUNTER
+	LDA		#3
+	STA		GAMESPEED
 	JSR		refreshScreenStart
 
 ; ============================= Main Game Loop =============================
 gameLoop:
+	LDA		GAMECOUNTER
+	CMP		GAMESPEED
+	BNE		gameLoopRefreshCont
+	JSR		moveItems
+	LDA		#0
+	STA		GAMECOUNTER
+gameLoopRefreshCont:
 	JSR		refreshScreen
 gameLoopSkipRefresh:
 	JSR		takeInput
 	JMP		checkCollision
 gameLoopContinue:
+	INC		GAMECOUNTER
 	JMP		gameLoop
 	RTS
 ; ============================= End Game Loop =============================
@@ -444,6 +457,35 @@ loadState:
 	LDY		YSTORAGE
 	LDA		ASTORAGE
 	RTS
+
+; ============================= Move Items =============================
+moveItems:
+	LDY		#0
+moveItemsLoop:
+	LDX		ITEM1SYM,Y
+	CPX		#0
+	BEQ		notItem
+	
+	INY
+
+	LDX		ITEM1SYM,Y
+	INX
+	TXA
+	STA		ITEM1SYM,Y
+
+	JMP		moveItemsCheck
+
+notItem:
+	INY
+moveItemsCheck:
+	INY
+	INY
+	CPY		#$2D
+	BNE		moveItemsLoop
+
+	RTS
+; ============================= End Move Items =============================
+
 
 ; ============================= Start Collision Detection =============================
 checkCollision:
@@ -653,11 +695,11 @@ plotItemLoop:
 ;	LDX		COUNTER
 ;	LDA		PLAYERSYM,X
 	CMP		#CIRCLE				; Check PLAYERSYM for what colour to set
-	BNE		CHECKFORHEART
+	BNE		checkForHeart
 	LDA		#WHITE
 	JSR		plotColour
 	JMP		plotAtPosition
-CHECKFORHEART:
+checkForHeart:
 	LDX		COUNTER
 	LDA		PLAYERSYM,X
 	CMP		#HEART
@@ -727,11 +769,11 @@ incScoreHunds:
 ; ============================= END Incrementing Score =============================
 
 
-	;-------------------------------------------------------------------------------
-	;FIND PLAYFIELD
-	;PURPOSE: CLEARS THE GAME PLAYFIELD (EVERYTHING UNDERNEATH SCORE AND LIVES)
-	;USAGE:	JSR clearPlayField
-	;--------------------------------------------------------------------------------
+;-------------------------------------------------------------------------------
+; Find Playfield
+; Purpose: Clears the game playfield (everything underneath score and lives)
+; Usage: JSR clearPlayField
+;--------------------------------------------------------------------------------
 
 clearPlayField:
 	LDX		#00
