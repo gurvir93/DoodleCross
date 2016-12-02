@@ -38,7 +38,6 @@ MAXSCREENX  .equ	#21
 MAXSCREENY	.equ	#22
 ZERO		.equ	$30		; CHR$ code for 0
 CIRCLE		.equ	$51		; CHR$ code for circle
-HEART		.equ	$53
 SPACE		.equ	$20
 
 ENEMYSYM	.equ	$66		; Weird square
@@ -979,7 +978,7 @@ randomizeItem:
 	TAY
 	CPY		#1
 	BNE		dontSpawnPoint
-	LDA		#HEART			;ADD IMPLEMENTATION FOR DIFFERENT ITEMS
+	LDA		#POINTSYM			;ADD IMPLEMENTATION FOR DIFFERENT ITEMS
 	STA		ITEM1SYM,X
 	JMP		randomizeDirection
 dontSpawnPoint:
