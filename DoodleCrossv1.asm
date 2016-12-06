@@ -364,7 +364,7 @@ splashMsgLoop:
 	BNE		splashMsgLoop
 splashSelectMsg:
 	LDX		#6
-	LDY		#2
+	LDY		#1
 	CLC
 	JSR		PLOT
 	LDX		#0
@@ -372,7 +372,7 @@ selectMsgLoop:
 	LDA		select,x
 	JSR		CHROUT
 	INX
-	CPX		#17
+	CPX		#19
 	BNE		selectMsgLoop
 splashOptionOne:
 	LDX		#8
@@ -1423,7 +1423,7 @@ optionOne:
 optionTwo:
 	.byte	"2 - HOW TO PLAY"			;15
 select:
-	.byte	"SELECT FROM BELOW"			;17
+	.byte	"SELECT AN ACTION..."		;19
 welcome:
 	.byte	"WELCOME 2 DOODLECROSS"		;21
 lives:
