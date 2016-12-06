@@ -49,8 +49,8 @@ TWO			.equ	$32
 
 ENEMYSYM	.equ	$66		; Weird square
 POINTSYM	.equ	$5A		; Diamond
-POWERUPSYM	.equ	$41		; Spade
-POWERDNSYM	.equ	$56		; X
+POWERUPSYM	.equ	$53		;$41		; Spade
+POWERDNSYM	.equ	$41		;$56		; X
 LIFESYM		.equ	$53		; Heart
 
 INITLIVES	.equ	#3		; starting number of lives
@@ -995,6 +995,8 @@ powerUp:
 	JSR		modBy4
 	CMP		#0
 	BEQ		allPoints
+	CMP		#1
+	BEQ		increaseLife
 	JMP		decreaseSpeed
 afterPowerUp:
 	RTS
@@ -1010,7 +1012,7 @@ afterPowerDown:
 
 decreaseSpeed:
 	LDX		GAMESPEED
-	CMP		#4
+	CPX		#4
 	BCS		afterPowerDown
 	INC		GAMESPEED
 
@@ -1052,6 +1054,13 @@ allEnemysLoop:
 	INX
 	INX
 	JMP		allEnemysLoop
+
+increaseLife:
+	LDA		NUMOFLIVES
+	CMP		#MAXLIVES
+	BEQ		powerUp
+	INC		NUMOFLIVES
+	JMP		afterPowerUp
 
 ; ============================= End Item Power Up/Down's =============================
 
