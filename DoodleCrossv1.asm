@@ -22,8 +22,7 @@ JIFFYCLOCK	.equ	$00A2	; Memory address for the lowest byte in the jiffy clock (1
 WHITE		.equ	$01
 RED			.equ	$02
 GREEN		.equ	$05
-ONE			.equ	$31
-TWO			.equ	$32
+
 ; ==============
 ; | MEMORY MAP |
 ; ==============
@@ -44,7 +43,9 @@ MAXSCREENX  .equ	#21
 MAXSCREENY	.equ	#22
 ZERO		.equ	$30		; CHR$ code for 0
 CIRCLE		.equ	$51		; CHR$ code for circle
-SPACE		.equ	$20
+SPACE		.equ	$20		; CHR$ code for space
+ONE			.equ	$31
+TWO			.equ	$32
 
 ENEMYSYM	.equ	$66		; Weird square
 POINTSYM	.equ	$5A		; Diamond
@@ -52,7 +53,7 @@ POWERUPSYM	.equ	$41		; Spade
 POWERDNSYM	.equ	$56		; X
 LIFESYM		.equ	$53		; Heart
 
-INITLIVES	.equ	#3
+INITLIVES	.equ	#3		; starting number of lives
 LIVESX		.equ	#0
 LIVESY		.equ	#0
 MAXLIVES	.equ	#6		; position to plot first life//max number of lives
@@ -153,7 +154,6 @@ ITEM15SYM	.equ	$1D3F
 ITEM15X		.equ	$1D40
 ITEM15Y		.equ	$1D41
 ITEM15DIR	.equ	$1D42
-
 ; ------------------------
 
 main: 
@@ -268,7 +268,6 @@ main:
 startInitialization:
 	LDA		#8				; POKE 36879,8
 	STA		$900F
-
 	LDX		#0
 	LDA		#0
 	
@@ -345,8 +344,8 @@ setArrayAttributes:
 ;	LDA		#DIRUP
 ;	STA		ITEM4DIR
 
-	
-initScreen:
+; ======================= Main Menu/Splash Screen =======================
+initSplashScreen:
 	JSR		clearScreen
 	LDA		#0
 	STA		STARTGAME
@@ -356,7 +355,7 @@ splashMsg:
 	CLC
 	JSR		PLOT
 	LDX		#0
-splashMsgLoop:
+splashMsgLoop:					; print welcome message
 	LDA		welcome,x
 	JSR		CHROUT
 	INX
@@ -368,7 +367,7 @@ splashSelectMsg:
 	CLC
 	JSR		PLOT
 	LDX		#0
-selectMsgLoop:
+selectMsgLoop:					; print selection message
 	LDA		select,x
 	JSR		CHROUT
 	INX
@@ -380,7 +379,7 @@ splashOptionOne:
 	CLC
 	JSR		PLOT
 	LDX		#0
-optionOneLoop:
+optionOneLoop:					; print option 1 of selection
 	LDA		optionOne,x
 	JSR		CHROUT
 	INX
@@ -392,28 +391,32 @@ splashOptionTwo:
 	CLC
 	JSR		PLOT
 	LDX		#0
-optionTwoLoop:
+optionTwoLoop:					; print option 2 of selection
 	LDA		optionTwo,x
 	JSR		CHROUT
 	INX
 	CPX		#15
 	BNE		optionTwoLoop
 checkSelection:
-	JSR		SCNKEY
-	JSR		GETIN
+	JSR		SCNKEY				; probe for keyboard input
+	JSR		GETIN				; get character from keyboard
 	CMP		#ONE
-	BEQ		jumpToStart
+	BEQ		jumpToStart			; go to first selection - start game
 	CMP		#TWO
-	BEQ		instructionScreen
+	BEQ		instructionScreen	; go to second selection - display instructions
 	LDX		STARTGAME
 	CPX		#0
-	BEQ		checkSelection
-
+	BEQ		checkSelection		; loop until a valid selection
+	
+; ======================== End Main Menu/Splash Screen ========================
+	
 clearScreen:
 	LDA		#CLEAR
 	JSR		CHROUT
 	RTS
 	
+; ============================ How To Play Screen ============================
+
 instructionScreen:
 	JSR		clearScreen
 	LDX		#1
@@ -421,7 +424,7 @@ instructionScreen:
 	CLC
 	JSR		PLOT
 	LDX		#0
-instructionLoop:
+instructionLoop:				; print user character
 	LDA		player,x
 	JSR		CHROUT
 	INX
@@ -435,7 +438,7 @@ instructMsg:
 	LDY		#0
 	JSR		PLOT
 	LDX		#0
-instructLoop:
+instructLoop:					; print player movement message
 	LDA		instruct,x
 	JSR		CHROUT
 	INX
@@ -448,7 +451,7 @@ collectMsg:
 	CLC
 	JSR		PLOT
 	LDX		#0	
-collectLoop:
+collectLoop:					; print collect message
 	LDA		collect,x
 	JSR		CHROUT
 	INX
@@ -465,7 +468,7 @@ pointsMsg:
 	CLC
 	JSR		PLOT
 	LDX		#0
-pointsLoop:
+pointsLoop:						; print points message
 	LDA		points,x
 	JSR		CHROUT
 	INX
@@ -487,7 +490,7 @@ powerupsMsg:
 	CLC
 	JSR		PLOT
 	LDX		#0
-powerupsLoop:
+powerupsLoop:					; print power-ups message
 	LDA		powerups,x
 	JSR		CHROUT
 	INX
@@ -504,7 +507,7 @@ extralifeMsg:
 	CLC
 	JSR		PLOT
 	LDX		#0
-extralifeLoop:
+extralifeLoop:					; print extra life message
 	LDA		extralife,x
 	JSR		CHROUT
 	INX
@@ -516,7 +519,7 @@ avoidMsg:
 	CLC
 	JSR		PLOT
 	LDX		#0	
-avoidLoop:
+avoidLoop:						; print avoid message
 	LDA		avoid,x
 	JSR		CHROUT
 	INX
@@ -533,7 +536,7 @@ enemiesMsg:
 	CLC
 	JSR		PLOT
 	LDX		#0
-enemiesLoop:
+enemiesLoop:					; print enemies message
 	LDA		enemies,x
 	JSR		CHROUT
 	INX
@@ -550,7 +553,7 @@ powerdownsMsg:
 	CLC
 	JSR		PLOT
 	LDX		#0
-powerdownsLoop:
+powerdownsLoop:					; print power-downs message
 	LDA		powerdowns,x
 	JSR		CHROUT
 	INX
@@ -562,18 +565,19 @@ returnMsg:
 	CLC
 	JSR		PLOT
 	LDX		#0
-returnLoop:
+returnLoop:						; print return to main menu message
 	LDA		backToMenu,x
 	JSR		CHROUT
 	INX
 	CPX		#16
 	BNE		returnLoop
-waitForInput:
+waitForInput:					; wait for key input
 	JSR		SCNKEY
 	JSR		GETIN
 	BEQ		waitForInput
-	JMP		initScreen
+	JMP		initSplashScreen	; return to main menu/splash screen
 	
+; ======================== End How To Play Screen =========================	
 startGame:
 	JSR		clearScreen
 startGameInstance:
@@ -883,7 +887,6 @@ gameOver:
 	LDX		#10
 	LDY		#6
 	JSR		PLOT
-
 	LDX		#0
 printGameOver:
 	LDA		gameovertext,x			; Load specific byte x into accumulator
@@ -895,9 +898,7 @@ printGameOver:
 	LDA		#255
 	STA		DELAYTIME
 	JSR		delay
-
-	LDA		#CLEAR
-	JSR		CHROUT
+	JSR		clearScreen
 
 	JMP		startInitialization
 
