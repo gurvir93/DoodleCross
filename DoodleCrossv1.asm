@@ -583,7 +583,7 @@ startGame:
 startGameInstance:
 	LDA		#0
 	STA		GAMECOUNTER
-	LDA		#4
+	LDA		#3
 	STA		GAMESPEED
 	JSR		refreshScreenStart
 ; ============================= Main Game Loop =============================
@@ -994,8 +994,8 @@ powerUp:
 	JSR		randomizer
 	JSR		modBy4
 	CMP		#0
-	BEQ		decreaseSpeed
-	JMP		allPoints
+	BEQ		allPoints
+	JMP		decreaseSpeed
 afterPowerUp:
 	RTS
 
@@ -1003,23 +1003,28 @@ powerDown:
 	JSR		randomizer
 	JSR		modBy4
 	CMP		#0
-	BEQ		increaseSpeed
-	JMP		allEnemys
+	BEQ		allEnemys
+	JMP		increaseSpeed
 afterPowerDown:	
 	RTS
 
 decreaseSpeed:
-	LDX		DELAYTIME
+	LDX		GAMESPEED
 	CMP		#4
 	BCS		afterPowerDown
-	INC		DELAYTIME
+	INC		GAMESPEED
+
 	JMP		afterPowerDown
 
 increaseSpeed:
-	LDX		DELAYTIME
-	CPX		#1
+	LDX		GAMESPEED
+	CPX		#2
 	BCC		afterPowerUp
-	DEC		DELAYTIME
+	DEC		GAMESPEED
+
+	LDX		#0
+	STX		GAMECOUNTER			; Safety, ensure gamespeed compare is not missed
+
 	JMP 	afterPowerUp
 
 allPoints:
