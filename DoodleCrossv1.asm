@@ -642,6 +642,27 @@ return1:
 	RTS
 ; ============================= End Move Items =============================
 
+gameOver:
+	LDA		#CLEAR
+	JSR		CHROUT
+	LDX		#11
+	LDY		#11
+	JSR		PLOT
+
+	LDX		#0
+printGameOver:
+	LDA		gameovertext,x			; Load specific byte x into accumulator
+	JSR		CHROUT  			; Jump to character out subroutine
+	INX							; Increment x
+	CPX		#10					; Compare x with the total length of string going to be outputted
+	BNE		printGameOver		; If not equal, branch to loop
+
+	JSR		delay
+
+	LDA		#CLEAR
+	JSR		CHROUT
+
+	JMP		startInitialization
 
 ; ============================= Start Collision Detection =============================
 checkCollision:
@@ -694,10 +715,12 @@ collisionPoint:
 	JSR		incScore
 	JMP		endCollisionDetection
 collisionEnemy:
+	DEC		NUMOFLIVES
+	; Check for Game Over
 	LDA		NUMOFLIVES
 	CMP		#0
-	BEQ		endCollisionDetection
-	DEC		NUMOFLIVES
+	BEQ		gameOver
+
 	JMP		endCollisionDetection
 collisionPowerUp:
 	JMP		endCollisionDetection
@@ -954,6 +977,7 @@ incScoreHunds:
 	STX		SCOREONES
 	RTS
 ; ============================= END Incrementing Score =============================
+
 ;ITEM STRUCTURE:
 ;	SYMBOL
 ;	X
@@ -1140,6 +1164,9 @@ lives:
 	
 score:
 	.byte	"SCORE:"
+
+gameovertext:
+	.byte	"GAME OVER!"
 
 .seed        
 	DC.B	$33				; Initial seed value -- new values also stored in same location
