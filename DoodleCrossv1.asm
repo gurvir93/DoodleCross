@@ -2,7 +2,9 @@
 ; ======================
 ; | KERNAL SUBROUTINES |
 ; ======================
+SCNKEY		.equ   	$FF9F	; Address for kernal routine SCNKEY
 CHROUT		.equ	$FFD2	; Address for kernal routine CHROUT
+GETIN 		.equ   	$FFE4	; Address for kernal routine GETIN
 PLOT		.equ	$FFF0	; Address for kernal routine PLOT
 RDTIM		.equ	$FFDE	; Memory address for read system time - uses a, x, y
 SETTIM		.equ	$FFDB	; Memory address for setting system time - uses a, x, y
@@ -20,6 +22,8 @@ JIFFYCLOCK	.equ	$00A2	; Memory address for the lowest byte in the jiffy clock (1
 WHITE		.equ	$01
 RED			.equ	$02
 GREEN		.equ	$05
+ONE			.equ	$31
+TWO			.equ	$32
 ; ==============
 ; | MEMORY MAP |
 ; ==============
@@ -34,6 +38,7 @@ LIVESXCOORD	.equ	$1D56
 GAMECOUNTER .equ	$1D57
 GAMESPEED	.equ	$1D58
 DELAYTIME	.equ	$1D59
+STARTGAME	.equ	$1D5A
 
 MAXSCREENX  .equ	#21
 MAXSCREENY	.equ	#22
@@ -340,10 +345,237 @@ setArrayAttributes:
 ;	LDA		#DIRUP
 ;	STA		ITEM4DIR
 
+	
+initScreen:
+	JSR		clearScreen
+	LDA		#0
+	STA		STARTGAME
+splashMsg:
+	LDX		#0
+	LDY		#0
+	CLC
+	JSR		PLOT
+	LDX		#0
+splashMsgLoop:
+	LDA		welcome,x
+	JSR		CHROUT
+	INX
+	CPX		#21
+	BNE		splashMsgLoop
+splashSelectMsg:
+	LDX		#6
+	LDY		#2
+	CLC
+	JSR		PLOT
+	LDX		#0
+selectMsgLoop:
+	LDA		select,x
+	JSR		CHROUT
+	INX
+	CPX		#17
+	BNE		selectMsgLoop
+splashOptionOne:
+	LDX		#8
+	LDY		#4
+	CLC
+	JSR		PLOT
+	LDX		#0
+optionOneLoop:
+	LDA		optionOne,x
+	JSR		CHROUT
+	INX
+	CPX		#13
+	BNE		optionOneLoop
+splashOptionTwo:
+	LDX		#10
+	LDY		#3
+	CLC
+	JSR		PLOT
+	LDX		#0
+optionTwoLoop:
+	LDA		optionTwo,x
+	JSR		CHROUT
+	INX
+	CPX		#15
+	BNE		optionTwoLoop
+checkSelection:
+	JSR		SCNKEY
+	JSR		GETIN
+	CMP		#ONE
+	BEQ		jumpToStart
+	CMP		#TWO
+	BEQ		instructionScreen
+	LDX		STARTGAME
+	CPX		#0
+	BEQ		checkSelection
+
 clearScreen:
 	LDA		#CLEAR
 	JSR		CHROUT
+	RTS
+	
+instructionScreen:
+	JSR		clearScreen
+	LDX		#1
+	LDY		#6
+	CLC
+	JSR		PLOT
+	LDX		#0
+instructionLoop:
+	LDA		player,x
+	JSR		CHROUT
+	INX
+	CPX		#8
+	BNE		instructionLoop
+	LDA		#$71
+	JSR		CHROUT
+instructMsg:
+	LDX		#3
+	CLC
+	LDY		#0
+	JSR		PLOT
+	LDX		#0
+instructLoop:
+	LDA		instruct,x
+	JSR		CHROUT
+	INX
+	CPX		#20
+	BNE		instructLoop
+	JMP		collectMsg
+collectMsg:
+	LDX		#5
+	LDY		#4
+	CLC
+	JSR		PLOT
+	LDX		#0	
+collectLoop:
+	LDA		collect,x
+	JSR		CHROUT
+	INX
+	CPX		#8
+	BNE		collectLoop
+pointsMsg:
+	LDX		#7
+	LDY		#6
+	CLC
+	JSR		PLOT
+	LDA		#$7A
+	JSR		CHROUT
+	LDY		#8
+	CLC
+	JSR		PLOT
+	LDX		#0
+pointsLoop:
+	LDA		points,x
+	JSR		CHROUT
+	INX
+	CPX		#9
+	BNE		pointsLoop
+	JMP		powerupsMsg
+	
+jumpToStart:
+	JMP		startGame
 
+powerupsMsg:
+	LDX		#9
+	LDY		#6
+	CLC
+	JSR		PLOT
+	LDA		#$61
+	JSR		CHROUT
+	LDY		#8
+	CLC
+	JSR		PLOT
+	LDX		#0
+powerupsLoop:
+	LDA		powerups,x
+	JSR		CHROUT
+	INX
+	CPX		#12
+	BNE		powerupsLoop
+extralifeMsg:
+	LDX		#11
+	LDY		#6
+	CLC
+	JSR		PLOT
+	LDA		#$73
+	JSR		CHROUT
+	LDY		#8
+	CLC
+	JSR		PLOT
+	LDX		#0
+extralifeLoop:
+	LDA		extralife,x
+	JSR		CHROUT
+	INX
+	CPX		#13
+	BNE		extralifeLoop
+avoidMsg:
+	LDX		#13
+	LDY		#4
+	CLC
+	JSR		PLOT
+	LDX		#0	
+avoidLoop:
+	LDA		avoid,x
+	JSR		CHROUT
+	INX
+	CPX		#6
+	BNE		avoidLoop
+enemiesMsg:
+	LDX		#15
+	LDY		#6
+	CLC
+	JSR		PLOT
+	LDA		#$A6
+	JSR		CHROUT
+	LDY		#8
+	CLC
+	JSR		PLOT
+	LDX		#0
+enemiesLoop:
+	LDA		enemies,x
+	JSR		CHROUT
+	INX
+	CPX		#10
+	BNE		enemiesLoop
+powerdownsMsg:
+	LDX		#17
+	LDY		#6
+	CLC
+	JSR		PLOT
+	LDA		#$76
+	JSR		CHROUT
+	LDY		#8
+	CLC
+	JSR		PLOT
+	LDX		#0
+powerdownsLoop:
+	LDA		powerdowns,x
+	JSR		CHROUT
+	INX
+	CPX		#14
+	BNE		powerdownsLoop
+returnMsg:
+	LDX		#21
+	LDY		#2
+	CLC
+	JSR		PLOT
+	LDX		#0
+returnLoop:
+	LDA		backToMenu,x
+	JSR		CHROUT
+	INX
+	CPX		#16
+	BNE		returnLoop
+waitForInput:
+	JSR		SCNKEY
+	JSR		GETIN
+	BEQ		waitForInput
+	JMP		initScreen
+	
+startGame:
+	JSR		clearScreen
 startGameInstance:
 	LDA		#0
 	STA		GAMECOUNTER
@@ -1163,15 +1395,43 @@ waitLoop:
     CPX 	DELAYTIME
     BNE		waitLoop
     RTS
-
-lives:
-	.byte	"LIVES:"
 	
-score:
-	.byte	"SCORE:"
 
+; ============================= STRINGS =============================
+backToMenu:
+	.byte	"PRESS ANY BUTTON"			;16
+player:
+	.byte	"YOU ARE: "					;8
+instruct:
+	.byte	"USE JOYSTICK TO MOVE"		;20
+collect:
+	.byte	"COLLECT:"					;8
+points:
+	.byte	" - POINTS"					;9
+powerups:
+	.byte	" - POWER-UPS"				;12	
+extralife
+	.byte	" - EXTRA LIFE"				;13
+avoid:
+	.byte	"AVOID:"					;6
+enemies:
+	.byte	" - ENEMIES"				;10
+powerdowns:
+	.byte	" - POWER-DOWNS"			;14
+optionOne:
+	.byte	"1 - PLAY GAME"				;13
+optionTwo:
+	.byte	"2 - HOW TO PLAY"			;15
+select:
+	.byte	"SELECT FROM BELOW"			;17
+welcome:
+	.byte	"WELCOME 2 DOODLECROSS"		;21
+lives:
+	.byte	"LIVES:"					;6
+score:
+	.byte	"SCORE:"					;6
 gameovertext:
-	.byte	"GAME OVER!"
+	.byte	"GAME OVER!"				;10
 
 .seed        
 	DC.B	$33				; Initial seed value -- new values also stored in same location
