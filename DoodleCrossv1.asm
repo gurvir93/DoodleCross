@@ -33,6 +33,7 @@ NUMOFLIVES	.equ	$1D55
 LIVESXCOORD	.equ	$1D56
 GAMECOUNTER .equ	$1D57
 GAMESPEED	.equ	$1D58
+DELAYTIME	.equ	$1D59
 
 MAXSCREENX  .equ	#21
 MAXSCREENY	.equ	#22
@@ -281,6 +282,8 @@ initializeArray:
 	BNE		initializeArray
 
 setArrayAttributes:
+	LDA		#3
+	STA		DELAYTIME
 	LDA		#CIRCLE
 	STA		PLAYERSYM
 	LDA		#11				; Middle of screen
@@ -645,8 +648,8 @@ return1:
 gameOver:
 	LDA		#CLEAR
 	JSR		CHROUT
-	LDX		#11
-	LDY		#11
+	LDX		#10
+	LDY		#6
 	JSR		PLOT
 
 	LDX		#0
@@ -657,6 +660,8 @@ printGameOver:
 	CPX		#10					; Compare x with the total length of string going to be outputted
 	BNE		printGameOver		; If not equal, branch to loop
 
+	LDA		#255
+	STA		DELAYTIME
 	JSR		delay
 
 	LDA		#CLEAR
@@ -1155,7 +1160,7 @@ delay:
 	STX		JIFFYCLOCK
 waitLoop:
 	LDX		JIFFYCLOCK
-    CPX 	#3
+    CPX 	DELAYTIME
     BNE		waitLoop
     RTS
 
