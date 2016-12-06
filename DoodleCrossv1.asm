@@ -961,8 +961,10 @@ collisionEnemy:
 
 	JMP		endCollisionDetection
 collisionPowerUp:
+	JSR		powerUp
 	JMP		endCollisionDetection
 collisionPowerDown:
+	JSR		powerDown
 	JMP		endCollisionDetection
 collsionLife:
 	LDA		NUMOFLIVES
@@ -986,6 +988,67 @@ noCollision2:
 	BNE		checkCollisionLoop
 	JMP		gameLoopContinue
 ; ============================= End Collision Detection =============================
+
+; ============================= Item Power Up/Down's =============================
+powerUp:
+	JSR		randomizer
+	JSR		modBy4
+	CMP		#0
+	BEQ		decreaseSpeed
+	JMP		allPoints
+afterPowerUp:
+	RTS
+
+powerDown:
+	JSR		randomizer
+	JSR		modBy4
+	CMP		#0
+	BEQ		increaseSpeed
+	JMP		allEnemys
+afterPowerDown:	
+	RTS
+
+decreaseSpeed:
+	LDX		DELAYTIME
+	CMP		#4
+	BCS		afterPowerDown
+	INC		DELAYTIME
+	JMP		afterPowerDown
+
+increaseSpeed:
+	LDX		DELAYTIME
+	CPX		#1
+	BCC		afterPowerUp
+	DEC		DELAYTIME
+	JMP 	afterPowerUp
+
+allPoints:
+	LDX		#0
+	LDA		#POINTSYM
+allPointsLoop:
+	STA		ITEM1SYM,X
+	CPX		#$38
+	BEQ		afterPowerUp
+	INX
+	INX
+	INX
+	INX
+	JMP		allPointsLoop
+
+allEnemys:
+	LDX		#0
+	LDA		#ENEMYSYM
+allEnemysLoop:
+	STA		ITEM1SYM,X
+	CPX		#$38
+	BEQ		afterPowerDown
+	INX
+	INX
+	INX
+	INX
+	JMP		allEnemysLoop
+
+; ============================= End Item Power Up/Down's =============================
 
 ; ============================= Start Random Generator =============================
 randomizer:
