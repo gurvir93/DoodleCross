@@ -22,6 +22,9 @@ JIFFYCLOCK	.equ	$00A2	; Memory address for the lowest byte in the jiffy clock (1
 WHITE		.equ	$01
 RED			.equ	$02
 GREEN		.equ	$05
+SNDCH1	.equ	$900A		; Memory location for sound channel 1
+SNDVOL	.equ	$900E		; Memory location for system sound volume, 
+							;  must be set to hear sound -- 0-15 volume levels.
 
 ; ==============
 ; | MEMORY MAP |
@@ -266,8 +269,10 @@ main:
 ;	$1D42 - Item 15 direction
 
 startInitialization:
-	LDA		#8				; POKE 36879,8
+	LDA		#8			; POKE 36879,8
 	STA		$900F
+	LDX		#15			; Set x=15
+	STX		SNDVOL		; Set sound volume to 15
 	LDX		#0
 	LDA		#0
 	
@@ -1256,11 +1261,30 @@ dontPlot:
 	BEQ		return
 	JMP		plotItemLoop
 	RTS
+	
+playwinsound:
+	LDY 	sound
+	STY		SNDCH1
+	LDA		#0
+	STA		162
+	JSR		WAIT
+	LDY		#0
+	STY		SNDCH1
+	RTS
+
+sound: 
+	.byte	$E1,$E4,$E7,$E8,$EB,$ED,$EF,$F0,$EE,$E3
+	
+WAIT   LDA 162
+       CMP #5
+       BNE WAIT
+       RTS
 
 ; ============================= Incrementing Score =============================
 ; 	Uses - x |
 ; ------------
 incScore:
+	JSR		playwinsound
 	LDX		SCOREONES
 	CPX		#9
 	BEQ		incScoreTens
