@@ -38,6 +38,8 @@ GAMECOUNTER .equ	$1D57
 GAMESPEED	.equ	$1D58
 DELAYTIME	.equ	$1D59
 STARTGAME	.equ	$1D5A
+PLAYERCOUNT	.equ	$1D5B
+PLAYERSPEED .equ	$1D5C
 
 MAXSCREENX  .equ	#21
 MAXSCREENY	.equ	#22
@@ -583,8 +585,13 @@ startGame:
 startGameInstance:
 	LDA		#0
 	STA		GAMECOUNTER
-	LDA		#$ff
+	STA		PLAYERCOUNT
+
+	LDA		#200
 	STA		GAMESPEED
+	LDA		#180
+	STA		PLAYERSPEED
+
 	JSR		refreshScreenStart
 	JSR		plotPlayer
 
@@ -600,10 +607,17 @@ gameLoop:
 gameLoopRefreshCont:
 ;	JSR		refreshScreen
 gameLoopSkipRefresh:
+	LDA		PLAYERCOUNT
+	CMP		PLAYERSPEED
+	BNE		gameLoopCollision
 	JSR		takeInput
+	LDA		#0
+	STA		PLAYERCOUNT
+gameLoopCollision:
 	JMP		checkCollision
 gameLoopContinue:
 	INC		GAMECOUNTER
+	INC		PLAYERCOUNT
 	JMP		gameLoop
 	RTS
 ; ============================= End Game Loop =============================
@@ -778,7 +792,7 @@ handleColourCase1:
 	LDA		#$97
 	STA		$05
 	LDA		#0
-	STA		$01
+	STA		$04
 	TXA
 	SEC
 	SBC		#14
