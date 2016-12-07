@@ -1167,27 +1167,6 @@ colouredCurrent:
 	RTS
 ; ============================= End Move Items =============================
 
-gameOver:
-	LDA		#CLEAR
-	JSR		CHROUT
-	LDX		#10
-	LDY		#6
-	JSR		PLOT
-	LDX		#0
-printGameOver:
-	LDA		gameovertext,x			; Load specific byte x into accumulator
-	JSR		CHROUT  			; Jump to character out subroutine
-	INX							; Increment x
-	CPX		#10					; Compare x with the total length of string going to be outputted
-	BNE		printGameOver		; If not equal, branch to loop
-
-	LDA		#255
-	STA		DELAYTIME
-	JSR		delay
-	JSR		clearScreen
-
-	JMP		startInitialization
-
 ; ============================= Start Collision Detection =============================
 checkCollision:
 	LDY		#0
@@ -1269,6 +1248,58 @@ noCollision2:
 	BNE		checkCollisionLoop
 	JMP		gameLoopContinue
 ; ============================= End Collision Detection =============================
+; ============================= Start Game Over =============================
+gameOver:
+	LDA		#CLEAR
+	JSR		CHROUT
+	LDX		#10					; Y AXIS VALUE
+	LDY		#6					; X AXIS VALUE
+	CLC
+	JSR		PLOT
+	LDX		#0
+printGameOver:
+	LDA		gameovertext,x			; Load specific byte x into accumulator
+	JSR		CHROUT  			; Jump to character out subroutine
+	INX							; Increment x
+	CPX		#9					; Compare x with the total length of string going to be outputted
+	BNE		printGameOver		; If not equal, branch to loop
+
+	LDX		#12					; Y AXIS VALUE
+	LDY		#6					; X AXIS VALUE
+	CLC							; Set carry bit - needed to call kernal routine PLOT
+	JSR		PLOT
+	LDX		#0
+
+scoreTextLoop:
+	LDA		score,x				; Load specific byte x into accumulator
+	JSR		CHROUT  			; Jump to character out subroutine
+	INX							; Increment x
+	CPX		#6					; Compare x with the total length of string going to be outputted
+	BNE		scoreTextLoop		; If not equal, branch to loop
+
+	LDA		SCOREHUND
+	CLC
+	ADC		#ZERO
+	JSR		CHROUT
+
+	LDA		SCORETENS
+	CLC
+	ADC		#ZERO
+	JSR		CHROUT
+
+	CLC
+	LDA		SCOREONES
+	ADC		#ZERO
+	JSR		CHROUT
+
+	LDA		#255
+	STA		DELAYTIME
+	JSR		delay
+	JSR		clearScreen
+
+	JMP		startInitialization
+
+; ============================= End Game Over =============================
 ;FINDPOSITION:
 findScreenPosition:
 	LDA		#00
@@ -1908,7 +1939,7 @@ lives:
 score:
 	.byte	"SCORE:"					;6
 gameovertext:
-	.byte	"GAME OVER!"				;10
+	.byte	"GAME OVER"					;9
 
 .seed        
 	DC.B	$33				; Initial seed value -- new values also stored in same location
