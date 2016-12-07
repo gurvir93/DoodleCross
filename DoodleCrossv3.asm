@@ -586,6 +586,8 @@ startGameInstance:
 	LDA		#3
 	STA		GAMESPEED
 	JSR		refreshScreenStart
+	JSR		plotPlayer
+
 ; ============================= Main Game Loop =============================
 gameLoop:
 	LDA		GAMECOUNTER
@@ -650,7 +652,7 @@ moveRight:
 	INC		PLAYERX
 	LDX		PLAYERX
 	LDY		PLAYERY
-	JSR		FINDPOSITION
+	JSR		findScreenPosition
 	JSR		colourPlayer
 
 	LDA		PLAYERSYM
@@ -667,7 +669,7 @@ moveLeft:
 	DEC		PLAYERX
 	LDX		PLAYERX
 	LDY		PLAYERY
-	JSR		FINDPOSITION
+	JSR		findScreenPosition
 	JSR		colourPlayer
 
 	LDA		PLAYERSYM
@@ -686,7 +688,7 @@ moveDown:
 	INC		PLAYERY
 	LDX		PLAYERX
 	LDY		PLAYERY
-	JSR		FINDPOSITION
+	JSR		findScreenPosition
 	JSR		colourPlayer
 
 	LDA		PLAYERSYM
@@ -703,7 +705,7 @@ moveUp:
 	DEC		PLAYERY
 	LDX		PLAYERX
 	LDY		PLAYERY
-	JSR		FINDPOSITION
+	JSR		findScreenPosition
 	JSR		colourPlayer
 
 	LDA		PLAYERSYM
@@ -713,7 +715,7 @@ donePlayerMove:
 	RTS
 
 clearPosition:
-	JSR		FINDPOSITION
+	JSR		findScreenPosition
 	LDA		#SPACE
 	JSR		plotPosition
 	RTS
@@ -725,34 +727,6 @@ clearPosition:
 ;	then store indirectly ascii/custom character set needed in that position.
 ;---------------------------------------------------------------------------------
 
-findScreenPosition:
-	LDA		#00
-	STY		$03
-
-initializeScreenPosition:
-	STX		$00		
-	LDA		#$1E	
-	STA		$01
-	LDY		#$00
-
-addYLevels:
-	CPY		$03
-	BEQ		foundPosition
-	INY
-	LDX		#00
-add22:		
-	INC		$00
-	INX
-	LDA		$00
-	CMP		#00					; Changed from 255: Wouldn't plot to 1EFF??
-	BNE		dontAddCarry	
-	INC		$01
-dontAddCarry:
-	CPX		#22
-	BNE		add22
-	JMP 	addYLevels
-foundPosition:
-	RTS
 ;------------------------------------------------------
 
 plotPosition:
@@ -934,7 +908,7 @@ movingItemUp:
 	JSR		loadState
 	DEY
 	JSR		storeState
-	JSR		FINDPOSITION
+	JSR		findScreenPosition
 	LDY		COUNTER
 	LDA		ITEM1SYM,Y
 	JSR		plotPosition
@@ -973,7 +947,7 @@ movingItemRight:
 	JSR		loadState
 	INX
 	JSR		storeState
-	JSR		FINDPOSITION
+	JSR		findScreenPosition
 	LDY		COUNTER
 ;	INY
 	LDA		ITEM1SYM,Y
@@ -1021,7 +995,7 @@ movingItemDown:
 	JSR		loadState
 	INY
 	JSR		storeState
-	JSR		FINDPOSITION
+	JSR		findScreenPosition
 	LDY		COUNTER
 	LDA		ITEM1SYM,Y
 	JSR		plotPosition
@@ -1065,7 +1039,7 @@ moveItemsLeft:
 	JSR		loadState
 	DEX
 	JSR		storeState
-	JSR		FINDPOSITION
+	JSR		findScreenPosition
 	LDY		COUNTER
 	LDA		ITEM1SYM,Y
 	JSR		plotPosition
@@ -1193,6 +1167,9 @@ checkCollisionLoop:
 	BNE		noCollision2
 
 collisionDetected:
+	JSR		storeState
+	JSR		plotPlayer
+	JSR		loadState
 	DEY						; Move to item X-axis position
 	DEY						; Move to item symbol position
 
@@ -1213,9 +1190,6 @@ collisionDetected:
 	CPX		#POWERDNSYM
 	BEQ		collisionPowerDown
 
-	CPX		#LIFESYM
-	BEQ		collsionLife
-
 	JMP		gameLoopSkipRefresh
 
 collisionPoint:
@@ -1235,11 +1209,6 @@ collisionPowerUp:
 collisionPowerDown:
 	JSR		powerDown
 	JMP		endCollisionDetection
-collsionLife:
-	LDA		NUMOFLIVES
-	CMP		#MAXLIVES
-	BEQ		endCollisionDetection
-	INC		NUMOFLIVES
 
 endCollisionDetection:
 	JSR		refreshScreenScore
@@ -1257,41 +1226,37 @@ noCollision2:
 	BNE		checkCollisionLoop
 	JMP		gameLoopContinue
 ; ============================= End Collision Detection =============================
-FINDPOSITION:
+;FINDPOSITION:
+findScreenPosition:
 	LDA		#00
 	STY		$03
-INITIALIZE:
+initializeScreenPosition:
 	CPY		#11
-	BEQ		CASE1
+	BEQ		screenCase1
 	CPY		#12
-	BCS		CASE2				;CHECK IF Y IS >= 12
-;	LDY		#0
-BASECASE:
+	BCS		screenCase2				;CHECK IF Y IS >= 12
+screenBaseCase:
 	LDA		#00
 	STA		$00
-;	STX		$00		
 	LDA		#$1E	
 	STA		$01
 	LDY		#0
 	LDA		$00
 
-POSITIONYLOOP1:
-	
+screenYLoop:
 	CPY		$03
-	BEQ		DONEPOSITION
-	INC		$1D0F
+	BEQ		DONE
 	INY
 	LDA		$00
 	CLC
 	ADC		#22
 	STA		$00
-	JMP		POSITIONYLOOP1
-CASE1:
+	JMP		screenYLoop
+screenCase1:
 	CLC
 	CPX		#14
-	BCC		BASECASE
-;	JMP		BASECASE
-HANDLECASE1:
+	BCC		screenBaseCase
+handleScreenCase1:
 	LDA		#$1F
 	STA		$01
 	LDA		#0
@@ -1300,9 +1265,8 @@ HANDLECASE1:
 	SEC
 	SBC		#14
 	TAX
-	JMP		DONEPOSITION
-CASE2:
-	INC		$1D0E
+	JMP		DONE
+screenCase2:
 	LDA		#$08
 	STA		$00
 	LDA		#$1F
@@ -1312,8 +1276,8 @@ CASE2:
 	SBC		#12
 	STA		$03
 	LDY		#0
-	JMP		POSITIONYLOOP1
-DONEPOSITION:
+	JMP		screenYLoop
+DONE:
 ;	STA		$00
 	TXA
 	CLC
@@ -1416,8 +1380,8 @@ refreshScreenScore:
 	JSR		plotCurrentScore
 
 refreshScreen:
-	JSR		clearPlayField
-	JSR		plotItem
+;	JSR		clearPlayField
+;	JSR		plotItem
 	;JSR		delay
 
 	RTS
@@ -1520,6 +1484,19 @@ plotCurrentScore:
 
 	RTS
 
+plotPlayer:
+	LDX		PLAYERX
+	LDY		PLAYERY
+	JSR		findScreenPosition
+	LDA		PLAYERSYM
+	JSR		plotPosition
+	LDX		PLAYERX
+	LDY		PLAYERY
+	JSR		findColourPosition
+	LDA		#WHITE
+	JSR		plotColour
+
+	RTS
 
 plotItem:
 	LDX		#0
@@ -1535,7 +1512,7 @@ plotItemLoop:
 	LDX		COUNTER
 	LDY		PLAYERSYM,X
 	TAX
-	JSR		FINDPOSITION
+	JSR		findScreenPosition
 
 	DEC		COUNTER				; Move to item X-axis position
 
