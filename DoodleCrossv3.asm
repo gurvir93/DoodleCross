@@ -650,7 +650,7 @@ moveRight:
 	INC		PLAYERX
 	LDX		PLAYERX
 	LDY		PLAYERY
-	JSR		findScreenPosition
+	JSR		FINDPOSITION
 	JSR		colourPlayer
 
 	LDA		PLAYERSYM
@@ -667,8 +667,8 @@ moveLeft:
 	DEC		PLAYERX
 	LDX		PLAYERX
 	LDY		PLAYERY
-	JSR		findScreenPosition
-		JSR		colourPlayer
+	JSR		FINDPOSITION
+	JSR		colourPlayer
 
 	LDA		PLAYERSYM
 	JSR		plotPosition
@@ -686,8 +686,8 @@ moveDown:
 	INC		PLAYERY
 	LDX		PLAYERX
 	LDY		PLAYERY
-	JSR		findScreenPosition
-		JSR		colourPlayer
+	JSR		FINDPOSITION
+	JSR		colourPlayer
 
 	LDA		PLAYERSYM
 	JSR		plotPosition
@@ -703,8 +703,8 @@ moveUp:
 	DEC		PLAYERY
 	LDX		PLAYERX
 	LDY		PLAYERY
-	JSR		findScreenPosition
-		JSR		colourPlayer
+	JSR		FINDPOSITION
+	JSR		colourPlayer
 
 	LDA		PLAYERSYM
 	JSR		plotPosition
@@ -713,7 +713,7 @@ donePlayerMove:
 	RTS
 
 clearPosition:
-	JSR		findScreenPosition
+	JSR		FINDPOSITION
 	LDA		#SPACE
 	JSR		plotPosition
 	RTS
@@ -934,7 +934,7 @@ movingItemUp:
 	JSR		loadState
 	DEY
 	JSR		storeState
-	JSR		findScreenPosition
+	JSR		FINDPOSITION
 	LDY		COUNTER
 	LDA		ITEM1SYM,Y
 	JSR		plotPosition
@@ -973,7 +973,7 @@ movingItemRight:
 	JSR		loadState
 	INX
 	JSR		storeState
-	JSR		findScreenPosition
+	JSR		FINDPOSITION
 	LDY		COUNTER
 ;	INY
 	LDA		ITEM1SYM,Y
@@ -1021,7 +1021,7 @@ movingItemDown:
 	JSR		loadState
 	INY
 	JSR		storeState
-	JSR		findScreenPosition
+	JSR		FINDPOSITION
 	LDY		COUNTER
 	LDA		ITEM1SYM,Y
 	JSR		plotPosition
@@ -1065,7 +1065,7 @@ moveItemsLeft:
 	JSR		loadState
 	DEX
 	JSR		storeState
-	JSR		findScreenPosition
+	JSR		FINDPOSITION
 	LDY		COUNTER
 	LDA		ITEM1SYM,Y
 	JSR		plotPosition
@@ -1257,7 +1257,69 @@ noCollision2:
 	BNE		checkCollisionLoop
 	JMP		gameLoopContinue
 ; ============================= End Collision Detection =============================
+FINDPOSITION:
+	LDA		#00
+	STY		$03
+INITIALIZE:
+	CPY		#11
+	BEQ		CASE1
+	CPY		#12
+	BCS		CASE2				;CHECK IF Y IS >= 12
+;	LDY		#0
+BASECASE:
+	LDA		#00
+	STA		$00
+;	STX		$00		
+	LDA		#$1E	
+	STA		$01
+	LDY		#0
+	LDA		$00
 
+POSITIONYLOOP1:
+	
+	CPY		$03
+	BEQ		DONEPOSITION
+	INC		$1D0F
+	INY
+	LDA		$00
+	CLC
+	ADC		#22
+	STA		$00
+	JMP		POSITIONYLOOP1
+CASE1:
+	CLC
+	CPX		#14
+	BCC		BASECASE
+;	JMP		BASECASE
+HANDLECASE1:
+	LDA		#$1F
+	STA		$01
+	LDA		#0
+	STA		$00
+	TXA
+	SEC
+	SBC		#14
+	TAX
+	JMP		DONEPOSITION
+CASE2:
+	INC		$1D0E
+	LDA		#$08
+	STA		$00
+	LDA		#$1F
+	STA		$01
+	LDA		$03
+	SEC
+	SBC		#12
+	STA		$03
+	LDY		#0
+	JMP		POSITIONYLOOP1
+DONEPOSITION:
+;	STA		$00
+	TXA
+	CLC
+	ADC		$00
+	STA		$00
+	RTS
 ; ============================= Item Power Up/Down's =============================
 powerUp:
 	JSR		randomizer
@@ -1473,7 +1535,7 @@ plotItemLoop:
 	LDX		COUNTER
 	LDY		PLAYERSYM,X
 	TAX
-	JSR		findScreenPosition
+	JSR		FINDPOSITION
 
 	DEC		COUNTER				; Move to item X-axis position
 
