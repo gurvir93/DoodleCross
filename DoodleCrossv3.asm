@@ -583,7 +583,7 @@ startGame:
 startGameInstance:
 	LDA		#0
 	STA		GAMECOUNTER
-	LDA		#3
+	LDA		#$ff
 	STA		GAMESPEED
 	JSR		refreshScreenStart
 	JSR		plotPlayer
@@ -741,38 +741,69 @@ plotPosition:
 ;	and call findColourPosition, then load colour value into accumulator and call
 ;	plotColour subroutine.
 ;---------------------------------------------------------------------------------
-
 findColourPosition:
-;	LDA		#$AA
-;	STA		$1D0F
 	LDA		#00
-	STA		$06
 	STY		$07
-
 initializeColourPosition:
-	STX		$04		
+	CPY		#11
+	BEQ		colourCase1
+	CPY		#12
+	BCS		colourCase2				;CHECK IF Y IS >= 12
+;	LDY		#0
+colourBaseCase:
+	LDA		#00
+	STA		$04
+;	STX		$00		
 	LDA		#$96	
 	STA		$05
-	LDY		#$00
-
-addCYLevels:
-	CPY		$07
-	BEQ		foundCPosition
-	INY
-	LDX		#00
-addC22:		
-	INC		$04
-	INX
+	LDY		#0
 	LDA		$04
-	CMP		#00
-	BNE		dontAddCCarry	
-	INC		$05
-dontAddCCarry:
-	CPX		#22
-	BNE		addC22
-	JMP 	addCYLevels
-foundCPosition:
+
+colourYLoop:
+	
+	CPY		$07
+	BEQ		colourPositionDone
+	INY
+	LDA		$04
+	CLC
+	ADC		#22
+	STA		$04
+	JMP		colourYLoop
+colourCase1:
+	CLC
+	CPX		#14
+	BCC		colourBaseCase
+;	JMP		BASECASE
+handleColourCase1:
+	LDA		#$97
+	STA		$05
+	LDA		#0
+	STA		$01
+	TXA
+	SEC
+	SBC		#14
+	TAX
+	JMP		colourPositionDone
+colourCase2:
+	LDA		#$08
+	STA		$04
+	LDA		#$97
+	STA		$05
+	LDA		$07
+	SEC
+	SBC		#12
+	STA		$07
+	LDY		#0
+	JMP		colourYLoop
+colourPositionDone:
+;	STA		$00
+	TXA
+	CLC
+	ADC		$04
+	STA		$04
 	RTS
+	;-------------------------------------------------------------------------------
+	;FIND POSITION
 
 plotColour:
 	LDY		#00
