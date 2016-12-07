@@ -599,14 +599,12 @@ startGameInstance:
 gameLoop:
 	LDA		GAMECOUNTER
 	CMP		GAMESPEED
-	BNE		gameLoopRefreshCont
+	BNE		gameLoopSkipItems
 	JSR		spawnItems
 	JSR		moveItems
 	LDA		#0
 	STA		GAMECOUNTER
-gameLoopRefreshCont:
-;	JSR		refreshScreen
-gameLoopSkipRefresh:
+gameLoopSkipItems:
 	LDA		PLAYERCOUNT
 	CMP		PLAYERSPEED
 	BNE		gameLoopCollision
@@ -1235,7 +1233,7 @@ collisionDetected:
 	CPX		#POWERDNSYM
 	BEQ		collisionPowerDown
 
-	JMP		gameLoopSkipRefresh
+	JMP		gameLoopSkipItems
 
 collisionPoint:
 	JSR		incScore
@@ -1257,7 +1255,7 @@ collisionPowerDown:
 
 endCollisionDetection:
 	JSR		refreshScreenScore
-	JMP		gameLoopSkipRefresh
+	JMP		gameLoopSkipItems
 
 noCollision0:
 	INY						; Move to item X-axis position
