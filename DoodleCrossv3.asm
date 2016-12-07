@@ -1690,7 +1690,6 @@ incScoreHunds:
 ;			   2 - RIGHT
 ;			   3 - DOWN
 ;			   4 - LEFT
-
 spawnItems:
 	LDA		#0
 	STA		COUNTER
@@ -1710,6 +1709,7 @@ randomizeItem:
 	STA		ITEM1SYM,X
 	JMP		randomizeDirection
 dontSpawnPoint:
+
 	CPY		#2
 	BNE		dontSpawnEnemy
 
@@ -1717,13 +1717,23 @@ dontSpawnPoint:
 	STA		ITEM1SYM,X
 	JMP		randomizeDirection
 dontSpawnEnemy:
+;	JMP		spawnNextItem
+	JSR		randomizer
+	CMP		#210				;DECREASE FOR INCREASE SPAWN CHANCES
+	BCS		spawnPowerUpDn			; OF POWERUP/DNS
+	JMP		spawnNextItem		;BRANCH IF GREATER THAN
+
+spawnPowerUpDn:
+	JSR		randomizer
+	CMP		#240
+	BCS		dontSpawnPowerDn
 	CPY		#3
-	BNE		dontSpawnPowerUp
-	LDA		#POWERUPSYM
+	BNE		dontSpawnPowerDn
+	LDA		#POWERDNSYM
 	STA		ITEM1SYM,X
 	JMP		randomizeDirection
-dontSpawnPowerUp:
-	LDA		#POWERDNSYM
+dontSpawnPowerDn:
+	LDA		#POWERUPSYM
 	STA		ITEM1SYM,X
 randomizeDirection:
 
