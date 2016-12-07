@@ -578,8 +578,8 @@ waitForInput:					; wait for key input
 	JSR		GETIN
 	BEQ		waitForInput
 	JMP		initSplashScreen	; return to main menu/splash screen
-	
-; ======================== End How To Play Screen =========================	
+; ======================== End How To Play Screen =========================
+
 startGame:
 	JSR		clearScreen
 startGameInstance:
@@ -814,8 +814,9 @@ colourPositionDone:
 	ADC		$04
 	STA		$04
 	RTS
-	;-------------------------------------------------------------------------------
-	;FIND POSITION
+
+;-------------------------------------------------------------------------------
+;FIND POSITION
 
 plotColour:
 	LDY		#00
@@ -1144,7 +1145,6 @@ return1:
 ; ============================= End Move Items =============================
 
 colourCurrent:
-
 	JSR		loadState
 	JSR		findColourPosition
 	LDY		COUNTER
@@ -1165,7 +1165,6 @@ dontColourPowerUP:
 	JSR		plotColour
 colouredCurrent:
 	RTS
-; ============================= End Move Items =============================
 
 ; ============================= Start Collision Detection =============================
 checkCollision:
@@ -1248,6 +1247,7 @@ noCollision2:
 	BNE		checkCollisionLoop
 	JMP		gameLoopContinue
 ; ============================= End Collision Detection =============================
+
 ; ============================= Start Game Over =============================
 gameOver:
 	LDA		#CLEAR
@@ -1298,9 +1298,9 @@ scoreTextLoop:
 	JSR		clearScreen
 
 	JMP		startInitialization
-
 ; ============================= End Game Over =============================
-;FINDPOSITION:
+
+; ============================= Find Position =============================
 findScreenPosition:
 	LDA		#00
 	STY		$03
@@ -1358,6 +1358,8 @@ DONE:
 	ADC		$00
 	STA		$00
 	RTS
+; ============================= End Find Position =============================
+
 ; ============================= Item Power Up/Down's =============================
 powerUp:
 	JSR		randomizer
