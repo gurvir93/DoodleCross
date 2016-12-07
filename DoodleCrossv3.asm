@@ -587,7 +587,7 @@ startGameInstance:
 	STA		GAMECOUNTER
 	STA		PLAYERCOUNT
 
-	LDA		#200
+	LDA		#230
 	STA		GAMESPEED
 	LDA		#180
 	STA		PLAYERSPEED
@@ -1337,37 +1337,9 @@ powerUp:
 	BEQ		allPoints
 	CMP		#1
 	BEQ		increaseLife
-	JMP		decreaseSpeed
-afterPowerUp:
-	RTS
-
-powerDown:
-	JSR		randomizer
-	JSR		modBy4
-	CMP		#0
-	BEQ		allEnemys
-	JMP		increaseSpeed
-afterPowerDown:	
-	RTS
-
-decreaseSpeed:
-	LDX		GAMESPEED
-	CPX		#4
-	BCS		afterPowerDown
-	INC		GAMESPEED
-
-	JMP		afterPowerDown
-
-increaseSpeed:
-	LDX		GAMESPEED
-	CPX		#2
-	BCC		afterPowerUp
-	DEC		GAMESPEED
-
-	LDX		#0
-	STX		GAMECOUNTER			; Safety, ensure gamespeed compare is not missed
-
-	JMP 	afterPowerUp
+	CMP		#2
+	BEQ		increasePlayerSpeed
+	JMP		decreaseItemSpeed
 
 allPoints:
 	LDX		#0
@@ -1375,12 +1347,56 @@ allPoints:
 allPointsLoop:
 	STA		ITEM1SYM,X
 	CPX		#$38
-	BEQ		afterPowerUp
+	BEQ		afterPower
 	INX
 	INX
 	INX
 	INX
 	JMP		allPointsLoop
+
+increaseLife:
+	LDA		NUMOFLIVES
+	CMP		#MAXLIVES
+	BEQ		powerUp
+	INC		NUMOFLIVES
+	JMP		afterPower
+
+increasePlayerSpeed:
+	LDX		PLAYERSPEED
+	CPX		#125
+	BCC		afterPower
+	LDA		PLAYERSPEED
+	SEC
+	SBC		#5
+	STA		PLAYERSPEED
+
+	LDX		#0
+	STX		PLAYERCOUNT			; Safety, ensure gamespeed compare is not missed
+
+	JMP 	afterPower
+
+decreaseItemSpeed:
+	LDX		GAMESPEED
+	CPX		#255
+	BCS		afterPower
+	LDA		GAMESPEED
+	CLC
+	ADC		#5
+	STA		GAMESPEED
+
+	JMP		afterPower
+
+afterPower:	
+	RTS
+
+powerDown:
+	JSR		randomizer
+	JSR		modBy4
+	CMP		#0
+	BEQ		allEnemys
+	CMP		#1
+	BEQ		decreasePlayerSpeed
+	JMP		increaseItemSpeed
 
 allEnemys:
 	LDX		#0
@@ -1388,19 +1404,41 @@ allEnemys:
 allEnemysLoop:
 	STA		ITEM1SYM,X
 	CPX		#$38
-	BEQ		afterPowerDown
+	BEQ		afterPower
 	INX
 	INX
 	INX
 	INX
 	JMP		allEnemysLoop
 
-increaseLife:
-	LDA		NUMOFLIVES
-	CMP		#MAXLIVES
-	BEQ		powerUp
-	INC		NUMOFLIVES
-	JMP		afterPowerUp
+decreasePlayerSpeed:
+	LDX		PLAYERSPEED
+	CPX		#255
+	BCS		afterPower
+	LDA		PLAYERSPEED
+	CLC
+	ADC		#5
+	STA		PLAYERSPEED
+
+	JMP		afterPower
+
+
+increaseItemSpeed:
+	LDX		GAMESPEED
+	CPX		#125
+	BCC		afterPower
+	LDA		GAMESPEED
+	SEC
+	SBC		#5
+	STA		GAMESPEED
+
+	LDX		#0
+	STX		GAMECOUNTER			; Safety, ensure gamespeed compare is not missed
+
+	JMP 	afterPower
+
+
+
 
 ; ============================= End Item Power Up/Down's =============================
 
