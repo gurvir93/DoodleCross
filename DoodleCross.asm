@@ -335,9 +335,7 @@ initSplashScreen:
 splashMsg:
 	LDX		#0
 	LDY		#0
-	CLC
-	JSR		PLOT
-	LDX		#0
+	JSR		initPlot
 splashMsgLoop:					; print welcome message
 	LDA		welcome,x
 	JSR		CHROUT
@@ -347,9 +345,7 @@ splashMsgLoop:					; print welcome message
 splashSelectMsg:
 	LDX		#6
 	LDY		#1
-	CLC
-	JSR		PLOT
-	LDX		#0
+	JSR		initPlot
 selectMsgLoop:					; print selection message
 	LDA		select,x
 	JSR		CHROUT
@@ -359,9 +355,7 @@ selectMsgLoop:					; print selection message
 splashOptionOne:
 	LDX		#8
 	LDY		#4
-	CLC
-	JSR		PLOT
-	LDX		#0
+	JSR		initPlot
 optionOneLoop:					; print option 1 of selection
 	LDA		optionOne,x
 	JSR		CHROUT
@@ -371,9 +365,7 @@ optionOneLoop:					; print option 1 of selection
 splashOptionTwo:
 	LDX		#10
 	LDY		#3
-	CLC
-	JSR		PLOT
-	LDX		#0
+	JSR		initPlot
 optionTwoLoop:					; print option 2 of selection
 	LDA		optionTwo,x
 	JSR		CHROUT
@@ -400,16 +392,14 @@ clearScreen:
 	
 jumpToStart:
 	JMP		startGame
-	
+
 ; ============================ How To Play Screen ============================
 
 instructionScreen:
 	JSR		clearScreen
 	LDX		#1
 	LDY		#6
-	CLC
-	JSR		PLOT
-	LDX		#0
+	JSR		initPlot
 instructionLoop:				; print user character
 	LDA		player,x
 	JSR		CHROUT
@@ -425,23 +415,18 @@ instructionLoop:				; print user character
 	JSR		plotColour			; change player colour
 instructMsg:
 	LDX		#3
-	CLC
-	LDY		#0
-	JSR		PLOT
-	LDX		#0
+	LDY		#0	
+	JSR		initPlot
 instructLoop:					; print player movement message
 	LDA		instruct,x
 	JSR		CHROUT
 	INX
 	CPX		#20
 	BNE		instructLoop
-	JMP		collectMsg
 collectMsg:
 	LDX		#5
 	LDY		#4
-	CLC
-	JSR		PLOT
-	LDX		#0	
+	JSR		initPlot
 collectLoop:					; print collect message
 	LDA		collect,x
 	JSR		CHROUT
@@ -456,9 +441,7 @@ pointsMsg:
 	LDA		#$7A
 	JSR		CHROUT
 	LDY		#8
-	CLC
-	JSR		PLOT
-	LDX		#0
+	JSR		initPlot
 pointsLoop:						; print points message
 	LDA		points,x
 	JSR		CHROUT
@@ -478,9 +461,7 @@ powerupsMsg:
 	LDA		#$73
 	JSR		CHROUT
 	LDY		#8
-	CLC
-	JSR		PLOT
-	LDX		#0
+	JSR		initPlot
 powerupsLoop:					; print power-ups message
 	LDA		powerups,x
 	JSR		CHROUT
@@ -495,9 +476,7 @@ powerupsLoop:					; print power-ups message
 avoidMsg:
 	LDX		#11
 	LDY		#4
-	CLC
-	JSR		PLOT
-	LDX		#0	
+	JSR		initPlot
 avoidLoop:						; print avoid message
 	LDA		avoid,x
 	JSR		CHROUT
@@ -512,9 +491,7 @@ enemiesMsg:
 	LDA		#$78
 	JSR		CHROUT
 	LDY		#8
-	CLC
-	JSR		PLOT
-	LDX		#0
+	JSR		initPlot
 enemiesLoop:					; print enemies message
 	LDA		enemies,x
 	JSR		CHROUT
@@ -534,9 +511,7 @@ powerdownsMsg:
 	LDA		#$61
 	JSR		CHROUT
 	LDY		#8
-	CLC
-	JSR		PLOT
-	LDX		#0
+	JSR		initPlot
 powerdownsLoop:					; print power-downs message
 	LDA		powerdowns,x
 	JSR		CHROUT
@@ -548,24 +523,158 @@ powerdownsLoop:					; print power-downs message
 	JSR		findColourPosition
 	LDA		#RED
 	JSR		plotColour			; plot power-down colour
+	JMP		returnMsg
+	
+jumpToInitSplash:
+	JMP		initSplashScreen		
+
 returnMsg:
-	LDX		#21
-	LDY		#2
-	CLC
-	JSR		PLOT
-	LDX		#0
+	LDX		#22
+	LDY		#0
+	JSR		initPlot
 returnLoop:						; print return to main menu message
-	LDA		backToMenu,x
+	LDA		instructOptions,x
+	JSR		CHROUT
+	INX
+	CPX		#21
+	BNE		returnLoop
+moreSelections:
+	JSR		SCNKEY			
+	JSR		GETIN
+	CMP		#ONE
+	BEQ		jumpToInitSplash	
+	CMP		#THREE
+	BEQ		initPowerScreen
+	LDX		STARTGAME
+	CPX		#0
+	BEQ		moreSelections
+	
+; ======================== End How To Play Screen =========================	
+	
+; ===================== Start Power-ups/downs Screen ======================
+initPowerScreen:
+	JSR		clearScreen
+powerupMsg:
+	LDX		#0
+	LDY		#0
+	JSR		initPlot
+powerupLoop:					; print powerup message
+	LDA		powerup,x
+	JSR		CHROUT
+	INX
+	CPX		#10
+	BNE		powerupLoop
+pointAllMsg:
+	LDX		#2
+	LDY		#0
+	JSR		initPlot
+pointAllLoop:					; print pointAll message
+	LDA		pointAll,x
+	JSR		CHROUT
+	INX
+	CPX		#21
+	BNE		pointAllLoop
+decItemSpeedMsg:
+	LDX		#4
+	LDY		#0
+	JSR		initPlot
+decItemSpeedLoop:				; print decItemSpeed message
+	LDA		decItemSpeed,x
+	JSR		CHROUT
+	INX
+	CPX		#14
+	BNE		decItemSpeedLoop
+incPlayerSpeedMsg:
+	LDX		#6
+	LDY		#0
+	JSR		initPlot
+incPlayerSpeedLoop:				; print incPlayerSpeed message
+	LDA		incPlayerSpeed,x
 	JSR		CHROUT
 	INX
 	CPX		#16
-	BNE		returnLoop
-waitForInput:					; wait for key input
+	BNE		incPlayerSpeedLoop
+extraLifeMsg:
+	LDX		#8
+	LDY		#0
+	JSR		initPlot
+extraLifeLoop:					; print extraLife message
+	LDA		extraLife,x
+	JSR		CHROUT
+	INX
+	CPX		#8
+	BNE		extraLifeLoop
+	JMP		powerdownMsg
+
+jumpToInstructScreen:
+	JMP		instructionScreen
+	
+initPlot:
+	CLC
+	JSR		PLOT
+	LDX		#0
+	RTS
+
+powerdownMsg:
+	LDX		#12
+	LDY		#0
+	JSR		initPlot
+powerdownLoop:					; print powerdown message
+	LDA		powerdown,x
+	JSR		CHROUT
+	INX
+	CPX		#12
+	BNE		powerdownLoop
+enemyAllMsg:
+	LDX		#14
+	LDY		#0
+	JSR		initPlot
+enemyAllLoop:					; print enemyAll message
+	LDA		enemyAll,x
+	JSR		CHROUT
+	INX
+	CPX		#20
+	BNE		enemyAllLoop
+incItemSpeedMsg:
+	LDX		#16
+	LDY		#0
+	JSR		initPlot
+incItemSpeedLoop:				; print incItemSpeed message
+	LDA		incItemSpeed,x
+	JSR		CHROUT
+	INX
+	CPX		#14
+	BNE		incItemSpeedLoop
+decPlayerSpeedMsg:
+	LDX		#18
+	LDY		#0
+	JSR		initPlot
+decPlayerSpeedLoop:				; print decPlayerSpeed message
+	LDA		decPlayerSpeed,x
+	JSR		CHROUT
+	INX
+	CPX		#16
+	BNE		decPlayerSpeedLoop
+powerOptionsMsg:
+	LDX		#22
+	LDY		#0
+	JSR		initPlot
+powerOptionsLoop:				; print powerOptions message
+	LDA		powerOptions,x
+	JSR		CHROUT
+	INX
+	CPX		#13
+	BNE		powerOptionsLoop
+evenMoreSelections:
 	JSR		SCNKEY
 	JSR		GETIN
-	BEQ		waitForInput
-	JMP		initSplashScreen	; return to main menu/splash screen
-; ======================== End How To Play Screen =========================
+	CMP		#ONE
+	BEQ		jumpToInstructScreen
+	CPX		#0
+	BEQ		evenMoreSelections
+	JMP		evenMoreSelections
+	
+; ====================== End Power-ups/downs Screen =======================
 startGame:
 	JSR		clearScreen
 startGameInstance:
@@ -1085,18 +1194,15 @@ colouredCurrent:
 ; ============================= Start Collision Detection =============================
 checkCollision:
 	LDY		#0
-
 checkCollisionLoop:
 	LDA		ITEM1SYM,Y
 	CMP		#0
 	BEQ		noCollision0
-
 	INY						; Move to item X-axis position
 
 	LDA		ITEM1SYM,Y
 	CMP		PLAYERX
 	BNE		noCollision1
-
 	INY						; Move to item Y-axis position
 
 	LDA		ITEM1SYM,Y
@@ -1302,7 +1408,6 @@ screenCase2:
 	LDY		#0
 	JMP		screenYLoop
 DONE:
-;	STA		$00
 	TXA
 	CLC
 	ADC		$00
@@ -1402,7 +1507,6 @@ decreasePlayerSpeed:
 	STA		PLAYERSPEED
 
 	JMP		afterPower
-
 
 increaseItemSpeed:
 	LDX		GAMESPEED
@@ -1618,20 +1722,20 @@ dontPlot:
 	JMP		plotItemLoop
 	RTS
 	
+; ============================= Sound Manipulation =============================	
+
 collectPointSFX:
 	LDY 	collectSFX
 	STY		SNDCH1				; Store collectSFX into sound channel 1
 	LDA		#150
 	STA		SOUNDSWITCH			; Load up sound counter
 	RTS
-
 hitEnemySFX:
 	LDY		hitSFX
 	STY		SNDCHNS				; Store hitSFX into noise channel
 	LDA		#255
 	STA		NOISESWITCH			; Load up noise counter
 	RTS
-	
 checksound:
 	LDX		SOUNDSWITCH
 	DEX
@@ -1639,7 +1743,6 @@ checksound:
 	CPX		#0
 	BEQ		turnOffSound
 	RTS
-	
 checknoise:
 	LDX		NOISESWITCH
 	DEX
@@ -1647,16 +1750,15 @@ checknoise:
 	CPX		#0
 	BEQ		turnOffNoise
 	RTS	
-	
 turnOffSound:
 	LDY		#0
 	STY		SNDCH1
-	RTS
-	
+	RTS	
 turnOffNoise:
 	LDY		#0
 	STY		SNDCHNS
-	RTS
+	RTS	
+; =========================== End Sound Manipulation ===========================
 	
 ; ============================= Incrementing Score =============================
 ; 	Uses - x |
@@ -1885,7 +1987,6 @@ clearLoop2:
 	CPX		#229
 	BNE		clearLoop2
 	RTS
-
 delay:
 	LDX		#0
 	STX		JIFFYCLOCK
@@ -1895,8 +1996,29 @@ waitLoop:
     BNE		waitLoop
     RTS
 	
-
 ; ============================= STRINGS =============================
+powerOptions:
+	.byte	"1-INSTUCTIONS"				;13
+decPlayerSpeed:
+	.byte	" > -PLAYER SPEED"			;16
+incItemSpeed:
+	.byte	" > +ITEM SPEED"			;14
+enemyAll:
+	.byte	" > EVERYTHING->ENEMY"		;20
+powerdown:
+	.byte	"POWER-DOWNS:"				;12
+extraLife:
+	.byte	" > +LIFE"					;8
+incPlayerSpeed:
+	.byte	" > +PLAYER SPEED"			;16
+decItemSpeed:
+	.byte	" > -ITEM SPEED"			;14
+pointAll:
+	.byte	" > EVERYTHING->POINTS"		;21
+powerup:
+	.byte	"POWER-UPS:"				;10
+instructOptions:
+	.byte	"1-RETURN     POWERS-3"		;21
 backToMenu:
 	.byte	"PRESS ANY BUTTON"			;16
 player:
@@ -1931,8 +2053,9 @@ gameovertext:
 	.byte	"GAME OVER"					;9
 gameOverFace:
 	.byte	"  #     #     #   #     #######   ##v###v## ############ ####### ## #     # #   ## ##   "
-   
 
+; ============================= SOUNDS =============================	
+	
 collectSFX: 
 	.byte	$E1,$E4,$E7,$E8,$EB,$ED,$EF,$F0,$EE,$E3
 
