@@ -1,12 +1,12 @@
 	processor 6502
 
-; ==============================
-; GAME: DOODLECROSS			   |
-; CONTRIBUTORS: AARON TONG	   |
-;				ERIC ONE	   |
-;				GERALD RANCHES |
-;				GURVIR SINGH   |
-; ==============================
+; ================================
+; | GAME: DOODLECROSS		     |
+; | CONTRIBUTORS: AARON TONG	 |
+; |				  ERIC ON	     |
+; |				  GERALD RANCHES |
+; |				  GURVIR SINGH   |
+; ================================
 	
 ; ======================
 ; | KERNAL SUBROUTINES |
@@ -509,7 +509,7 @@ enemiesMsg:
 	LDY		#6
 	CLC
 	JSR		PLOT
-	LDA		#$A6
+	LDA		#$78
 	JSR		CHROUT
 	LDY		#8
 	CLC
@@ -531,7 +531,7 @@ powerdownsMsg:
 	LDY		#6
 	CLC
 	JSR		PLOT
-	LDA		#$78
+	LDA		#$61
 	JSR		CHROUT
 	LDY		#8
 	CLC
