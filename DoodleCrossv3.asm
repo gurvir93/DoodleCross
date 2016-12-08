@@ -22,9 +22,9 @@ JIFFYCLOCK	.equ	$00A2	; Memory address for the lowest byte in the jiffy clock (1
 WHITE		.equ	$01
 RED			.equ	$02
 GREEN		.equ	$05
-SNDCH1		.equ	$900A		; Memory location for sound channel 1
-SNDCHNS		.equ	$900D		; Memory location for noise channel
-SNDVOL		.equ	$900E		; Memory location for system sound volume, 
+SNDCH1		.equ	$900A	; Memory location for sound channel 1
+SNDCHNS		.equ	$900D	; Memory location for noise channel
+SNDVOL		.equ	$900E	; Memory location for system sound volume, 
 							;  must be set to hear sound -- 0-15 volume levels.
 
 ; ==============
@@ -603,7 +603,6 @@ takeInput:
 	STA 	DDRB
 	CLC
 	LDA 	#0
-;loop:
 	LDA 	OUTPUTRB
 	ASL		
 	LDX		#0
@@ -1143,14 +1142,14 @@ endCollisionDetection:
 	JMP		gameLoopSkipItems
 
 noCollision0:
-	INY						; Move to item X-axis position
+	INY							; Move to item X-axis position
 noCollision1:
-	INY						; Move to item Y-axis position
+	INY							; Move to item Y-axis position
 noCollision2:
-	INY						; Move to item symbol position
-	INY						; Move to next item in array
+	INY							; Move to item symbol position
+	INY							; Move to next item in array
 
-	CPY		#$3C			; Check for end of array ((Item15DIR - Item1SYM) + 1 = 3C)
+	CPY		#$3C				; Check for end of array ((Item15DIR - Item1SYM) + 1 = 3C)
 	BNE		checkCollisionLoop
 	JMP		gameLoopContinue
 ; ============================= End Collision Detection =============================
@@ -1165,7 +1164,7 @@ gameOver:
 	JSR		PLOT
 	LDX		#0
 printGameOver:
-	LDA		gameovertext,x			; Load specific byte x into accumulator
+	LDA		gameovertext,x		; Load specific byte x into accumulator
 	JSR		CHROUT  			; Jump to character out subroutine
 	INX							; Increment x
 	CPX		#9					; Compare x with the total length of string going to be outputted
@@ -1667,7 +1666,7 @@ spawnItems:
 spawnItemsLoop:
 	LDX		COUNTER
 	LDA		ITEM1SYM,X
-	CMP		#0				;CHECK IF ITEM IS ALREADY SPAWNED
+	CMP		#0					;CHECK IF ITEM IS ALREADY SPAWNED
 	BEQ		randomizeItem
 	JMP		spawnNextItem
 randomizeItem:
@@ -1691,7 +1690,7 @@ dontSpawnEnemy:
 ;	JMP		spawnNextItem
 	JSR		randomizer
 	CMP		#210				;DECREASE FOR INCREASE SPAWN CHANCES
-	BCS		spawnPowerUpDn			; OF POWERUP/DNS
+	BCS		spawnPowerUpDn		; OF POWERUP/DNS
 	JMP		spawnNextItem		;BRANCH IF GREATER THAN
 
 spawnPowerUpDn:
@@ -1792,7 +1791,6 @@ divideBy4:
 findRemainder4:
 	CLC
 	ADC		#4
-;	STA		$1D00
 	RTS
 	;-------------------------------------------------------------------------------
 	;MOD BY 22
