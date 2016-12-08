@@ -1,4 +1,13 @@
 	processor 6502
+
+; ==============================
+; GAME: DOODLECROSS			   |
+; CONTRIBUTORS: AARON TONG	   |
+;				ERIC ONE	   |
+;				GERALD RANCHES |
+;				GURVIR SINGH   |
+; ==============================
+	
 ; ======================
 ; | KERNAL SUBROUTINES |
 ; ======================
@@ -55,7 +64,7 @@ SPACE		.equ	$20		; CHR$ code for space
 ONE			.equ	$31
 THREE		.equ	$33
 
-ENEMYSYM	.equ	$66		; Weird square
+ENEMYSYM	.equ	$58		; Weird square
 POINTSYM	.equ	$5A		; Diamond
 POWERUPSYM	.equ	$53		; $41		; Spade
 POWERDNSYM	.equ	$41		; $56		; X
@@ -520,7 +529,7 @@ powerdownsMsg:
 	LDY		#6
 	CLC
 	JSR		PLOT
-	LDA		#$61
+	LDA		#$78
 	JSR		CHROUT
 	LDY		#8
 	CLC
