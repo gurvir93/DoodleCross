@@ -562,9 +562,9 @@ startGameInstance:
 	STA		GAMECOUNTER
 	STA		PLAYERCOUNT
 
-	LDA		#230
+	LDA		#225
 	STA		GAMESPEED
-	LDA		#180
+	LDA		#175
 	STA		PLAYERSPEED
 
 	JSR		refreshScreenStart
@@ -1304,7 +1304,7 @@ increasePlayerSpeed:
 	BCC		afterPower
 	LDA		PLAYERSPEED
 	SEC
-	SBC		#5
+	SBC		#10
 	STA		PLAYERSPEED
 
 	LDX		#0
@@ -1318,7 +1318,7 @@ decreaseItemSpeed:
 	BCS		afterPower
 	LDA		GAMESPEED
 	CLC
-	ADC		#5
+	ADC		#10
 	STA		GAMESPEED
 
 	JMP		afterPower
@@ -1354,7 +1354,7 @@ decreasePlayerSpeed:
 	BCS		afterPower
 	LDA		PLAYERSPEED
 	CLC
-	ADC		#5
+	ADC		#10
 	STA		PLAYERSPEED
 
 	JMP		afterPower
@@ -1366,7 +1366,7 @@ increaseItemSpeed:
 	BCC		afterPower
 	LDA		GAMESPEED
 	SEC
-	SBC		#5
+	SBC		#10
 	STA		GAMESPEED
 
 	LDX		#0
