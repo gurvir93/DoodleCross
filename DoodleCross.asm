@@ -453,8 +453,6 @@ pointsLoop:						; print points message
 	JSR		findColourPosition
 	LDA		#GREEN
 	JSR		plotColour			; plot point colour
-	JMP		powerupsMsg
-	
 powerupsMsg:
 	LDX		#9
 	LDY		#6
@@ -1196,18 +1194,15 @@ colouredCurrent:
 ; ============================= Start Collision Detection =============================
 checkCollision:
 	LDY		#0
-
 checkCollisionLoop:
 	LDA		ITEM1SYM,Y
 	CMP		#0
 	BEQ		noCollision0
-
 	INY						; Move to item X-axis position
 
 	LDA		ITEM1SYM,Y
 	CMP		PLAYERX
 	BNE		noCollision1
-
 	INY						; Move to item Y-axis position
 
 	LDA		ITEM1SYM,Y
@@ -1413,7 +1408,6 @@ screenCase2:
 	LDY		#0
 	JMP		screenYLoop
 DONE:
-;	STA		$00
 	TXA
 	CLC
 	ADC		$00
@@ -1513,7 +1507,6 @@ decreasePlayerSpeed:
 	STA		PLAYERSPEED
 
 	JMP		afterPower
-
 
 increaseItemSpeed:
 	LDX		GAMESPEED
@@ -1729,20 +1722,20 @@ dontPlot:
 	JMP		plotItemLoop
 	RTS
 	
+; ============================= Sound Manipulation =============================	
+
 collectPointSFX:
 	LDY 	collectSFX
 	STY		SNDCH1				; Store collectSFX into sound channel 1
 	LDA		#150
 	STA		SOUNDSWITCH			; Load up sound counter
 	RTS
-
 hitEnemySFX:
 	LDY		hitSFX
 	STY		SNDCHNS				; Store hitSFX into noise channel
 	LDA		#255
 	STA		NOISESWITCH			; Load up noise counter
 	RTS
-	
 checksound:
 	LDX		SOUNDSWITCH
 	DEX
@@ -1750,7 +1743,6 @@ checksound:
 	CPX		#0
 	BEQ		turnOffSound
 	RTS
-	
 checknoise:
 	LDX		NOISESWITCH
 	DEX
@@ -1758,16 +1750,15 @@ checknoise:
 	CPX		#0
 	BEQ		turnOffNoise
 	RTS	
-	
 turnOffSound:
 	LDY		#0
 	STY		SNDCH1
-	RTS
-	
+	RTS	
 turnOffNoise:
 	LDY		#0
 	STY		SNDCHNS
-	RTS
+	RTS	
+; =========================== End Sound Manipulation ===========================
 	
 ; ============================= Incrementing Score =============================
 ; 	Uses - x |
@@ -1996,7 +1987,6 @@ clearLoop2:
 	CPX		#229
 	BNE		clearLoop2
 	RTS
-
 delay:
 	LDX		#0
 	STX		JIFFYCLOCK
@@ -2006,7 +1996,6 @@ waitLoop:
     BNE		waitLoop
     RTS
 	
-
 ; ============================= STRINGS =============================
 powerOptions:
 	.byte	"1-INSTUCTIONS"				;13
@@ -2064,8 +2053,9 @@ gameovertext:
 	.byte	"GAME OVER"					;9
 gameOverFace:
 	.byte	"  #     #     #   #     #######   ##v###v## ############ ####### ## #     # #   ## ##   "
-   
 
+; ============================= SOUNDS =============================	
+	
 collectSFX: 
 	.byte	$E1,$E4,$E7,$E8,$EB,$ED,$EF,$F0,$EE,$E3
 
