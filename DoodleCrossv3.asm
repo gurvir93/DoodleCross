@@ -22,6 +22,9 @@ JIFFYCLOCK	.equ	$00A2	; Memory address for the lowest byte in the jiffy clock (1
 WHITE		.equ	$01
 RED			.equ	$02
 GREEN		.equ	$05
+SNDCH1		.equ	$900A		; Memory location for sound channel 1
+SNDVOL		.equ	$900E		; Memory location for system sound volume, 
+							;  must be set to hear sound -- 0-15 volume levels.
 
 ; ==============
 ; | MEMORY MAP |
@@ -40,6 +43,7 @@ DELAYTIME	.equ	$1D59
 STARTGAME	.equ	$1D5A
 PLAYERCOUNT	.equ	$1D5B
 PLAYERSPEED .equ	$1D5C
+SOUNDSWITCH	.equ	$1D5D
 
 MAXSCREENX  .equ	#21
 MAXSCREENY	.equ	#22
@@ -54,6 +58,17 @@ POINTSYM	.equ	$5A		; Diamond
 POWERUPSYM	.equ	$53		;$41		; Spade
 POWERDNSYM	.equ	$41		;$56		; X
 LIFESYM		.equ	$53		; Heart
+
+PLAYERINFX	.equ	#14
+PLAYERINFY	.equ	#1
+ENEMYINFOX	.equ	#6
+ENEMYINFOY	.equ	#13
+POINTINFOX	.equ	#6
+POINTINFOY	.equ	#7
+POWERUPINX	.equ	#6
+POWERUPINY	.equ	#9
+POWERDOWNX	.equ	#6
+POWERDOWNY	.equ	#15
 
 INITLIVES	.equ	#3		; starting number of lives
 LIVESX		.equ	#0
@@ -270,8 +285,11 @@ main:
 startInitialization:
 	LDA		#8				; POKE 36879,8
 	STA		$900F
+	LDX		#15			; Set x=15
+	STX		SNDVOL		; Set sound volume to 15
 	LDX		#0
 	LDA		#0
+	STA		SOUNDSWITCH
 	
 initializeLives:
 	LDA		#INITLIVES
@@ -417,6 +435,9 @@ clearScreen:
 	JSR		CHROUT
 	RTS
 	
+jumpToStart:
+	JMP		startGame
+	
 ; ============================ How To Play Screen ============================
 
 instructionScreen:
@@ -434,6 +455,11 @@ instructionLoop:				; print user character
 	BNE		instructionLoop
 	LDA		#$71
 	JSR		CHROUT
+	LDX		#PLAYERINFX
+	LDY		#PLAYERINFY
+	JSR		findColourPosition
+	LDA		#WHITE
+	JSR		plotColour			; change player colour
 instructMsg:
 	LDX		#3
 	CLC
@@ -476,17 +502,17 @@ pointsLoop:						; print points message
 	INX
 	CPX		#9
 	BNE		pointsLoop
-	JMP		powerupsMsg
-	
-jumpToStart:
-	JMP		startGame
-
+	LDX		#POINTINFOX
+	LDY		#POINTINFOY
+	JSR		findColourPosition
+	LDA		#GREEN
+	JSR		plotColour			; plot point colour
 powerupsMsg:
 	LDX		#9
 	LDY		#6
 	CLC
 	JSR		PLOT
-	LDA		#$61
+	LDA		#$73
 	JSR		CHROUT
 	LDY		#8
 	CLC
@@ -498,25 +524,13 @@ powerupsLoop:					; print power-ups message
 	INX
 	CPX		#12
 	BNE		powerupsLoop
-extralifeMsg:
-	LDX		#11
-	LDY		#6
-	CLC
-	JSR		PLOT
-	LDA		#$73
-	JSR		CHROUT
-	LDY		#8
-	CLC
-	JSR		PLOT
-	LDX		#0
-extralifeLoop:					; print extra life message
-	LDA		extralife,x
-	JSR		CHROUT
-	INX
-	CPX		#13
-	BNE		extralifeLoop
+	LDX		#POWERUPINX
+	LDY		#POWERUPINY
+	JSR		findColourPosition
+	LDA		#GREEN
+	JSR		plotColour			; plot power-up colour
 avoidMsg:
-	LDX		#13
+	LDX		#11
 	LDY		#4
 	CLC
 	JSR		PLOT
@@ -528,7 +542,7 @@ avoidLoop:						; print avoid message
 	CPX		#6
 	BNE		avoidLoop
 enemiesMsg:
-	LDX		#15
+	LDX		#13
 	LDY		#6
 	CLC
 	JSR		PLOT
@@ -544,12 +558,17 @@ enemiesLoop:					; print enemies message
 	INX
 	CPX		#10
 	BNE		enemiesLoop
+	LDX		#ENEMYINFOX
+	LDY		#ENEMYINFOY
+	JSR		findColourPosition
+	LDA		#RED
+	JSR		plotColour			; plot enemy colour	
 powerdownsMsg:
-	LDX		#17
+	LDX		#15
 	LDY		#6
 	CLC
 	JSR		PLOT
-	LDA		#$76
+	LDA		#$61
 	JSR		CHROUT
 	LDY		#8
 	CLC
@@ -561,6 +580,11 @@ powerdownsLoop:					; print power-downs message
 	INX
 	CPX		#14
 	BNE		powerdownsLoop
+	LDX		#POWERDOWNX
+	LDY		#POWERDOWNY
+	JSR		findColourPosition
+	LDA		#RED
+	JSR		plotColour			; plot power-down colour
 returnMsg:
 	LDX		#21
 	LDY		#2
@@ -579,7 +603,6 @@ waitForInput:					; wait for key input
 	BEQ		waitForInput
 	JMP		initSplashScreen	; return to main menu/splash screen
 ; ======================== End How To Play Screen =========================
-
 startGame:
 	JSR		clearScreen
 startGameInstance:
@@ -597,6 +620,7 @@ startGameInstance:
 
 ; ============================= Main Game Loop =============================
 gameLoop:
+	JSR		checksound
 	LDA		GAMECOUNTER
 	CMP		GAMESPEED
 	BNE		gameLoopSkipItems
@@ -1678,11 +1702,32 @@ dontPlot:
 	BEQ		return
 	JMP		plotItemLoop
 	RTS
+	
+playsfx:
+	LDY 	sound
+	STY		SNDCH1
+	LDA		#150
+	STA		SOUNDSWITCH
+	RTS
+
+checksound:
+	LDX		SOUNDSWITCH
+	DEX
+	STX		SOUNDSWITCH
+	CPX		#0
+	BEQ		turnOffSound
+	RTS
+	
+turnOffSound:
+	LDY		#0
+	STY		SNDCH1
+	RTS
 
 ; ============================= Incrementing Score =============================
 ; 	Uses - x |
 ; ------------
 incScore:
+	JSR		playsfx	
 	LDX		SCOREONES
 	CPX		#9
 	BEQ		incScoreTens
@@ -1920,8 +1965,6 @@ points:
 	.byte	" - POINTS"					;9
 powerups:
 	.byte	" - POWER-UPS"				;12	
-extralife
-	.byte	" - EXTRA LIFE"				;13
 avoid:
 	.byte	"AVOID:"					;6
 enemies:
@@ -1943,5 +1986,8 @@ score:
 gameovertext:
 	.byte	"GAME OVER"					;9
 
+sound: 
+	.byte	$E1,$E4,$E7,$E8,$EB,$ED,$EF,$F0,$EE,$E3
+	
 .seed        
 	DC.B	$33				; Initial seed value -- new values also stored in same location
