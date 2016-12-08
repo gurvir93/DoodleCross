@@ -64,11 +64,13 @@ SPACE		.equ	$20		; CHR$ code for space
 ONE			.equ	$31
 THREE		.equ	$33
 
-ENEMYSYM	.equ	$58		; Weird square
+ENEMYSYM	.equ	$58		; Club
 POINTSYM	.equ	$5A		; Diamond
-POWERUPSYM	.equ	$53		; $41		; Spade
-POWERDNSYM	.equ	$41		; $56		; X
-LIFESYM		.equ	$53		; Heart
+POWERUPSYM	.equ	$53		; Heart
+POWERDNSYM	.equ	$41		; Spade
+
+SQUARESYM	.equ	$66		; Square
+XSYM		.equ	$56		; X
 
 PLAYERINFX	.equ	#14
 PLAYERINFY	.equ	#1
@@ -1167,6 +1169,39 @@ noCollision2:
 gameOver:
 	LDA		#CLEAR
 	JSR		CHROUT
+printGameOverFace:
+	LDX		#0
+	STX		COUNTER
+
+	LDX		#0					; Y AXIS VALUE
+	LDY		#5					; X AXIS VALUE
+	CLC
+	JSR		PLOT
+	JMP		printFaceLoopInner
+printFaceLoopOutter:
+	INX							; Increase Y AXIS VALUE
+	CLC
+	JSR		PLOT
+printFaceLoopInner:
+	STX		XSTORAGE
+	LDX		COUNTER
+	LDA		gameOverFace,X
+	JSR		CHROUT
+	LDX		XSTORAGE
+	
+	INC		COUNTER
+
+	LDA		#88
+	CMP		COUNTER
+	BEQ		afterFaceLoop
+
+	LDA		COUNTER
+	JSR		modBy11
+	CMP		#0
+	BEQ		printFaceLoopOutter
+	JMP		printFaceLoopInner
+	
+afterFaceLoop:
 	LDX		#10					; Y AXIS VALUE
 	LDY		#6					; X AXIS VALUE
 	CLC
@@ -1800,6 +1835,20 @@ findRemainder4:
 	ADC		#4
 	RTS
 ;-------------------------------------------------------------------------------
+;MOD BY 11
+;PURPOSE: FINDS THE REMAINDER OF A NUMBER DIVIDED BY 11
+;USAGE: LDA	#<NUMBER>
+;		JSR	modBy11
+modBy11:
+divideBy11:
+	SEC
+	SBC		#11
+	BCS		divideBy11
+findRemainder11:
+	CLC
+	ADC		#11
+	RTS
+;-------------------------------------------------------------------------------
 ;MOD BY 22
 ;PURPOSE: FINDS THE REMAINDER OF A NUMBER DIVIDED BY 22
 ;USAGE: LDA	#<NUMBER>
@@ -1880,6 +1929,9 @@ score:
 	.byte	"SCORE:"					;6
 gameovertext:
 	.byte	"GAME OVER"					;9
+gameOverFace:
+	.byte	"  #     #     #   #     #######   ##v###v## ############ ####### ## #     # #   ## ##   "
+   
 
 collectSFX: 
 	.byte	$E1,$E4,$E7,$E8,$EB,$ED,$EF,$F0,$EE,$E3
