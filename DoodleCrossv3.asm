@@ -1491,7 +1491,6 @@ plotCurrentScore:
 	LDA		SCOREONES
 	ADC		#ZERO
 	JSR		CHROUT
-
 	RTS
 
 plotPlayer:
@@ -1577,16 +1576,16 @@ dontPlot:
 	
 collectPointSFX:
 	LDY 	collectSFX
-	STY		SNDCH1
+	STY		SNDCH1				; Store collectSFX into sound channel 1
 	LDA		#150
-	STA		SOUNDSWITCH
+	STA		SOUNDSWITCH			; Load up sound counter
 	RTS
 
 hitEnemySFX:
 	LDY		hitSFX
-	STY		SNDCHNS
+	STY		SNDCHNS				; Store hitSFX into noise channel
 	LDA		#255
-	STA		NOISESWITCH
+	STA		NOISESWITCH			; Load up noise counter
 	RTS
 	
 checksound:
@@ -1675,7 +1674,7 @@ randomizeItem:
 	TAY
 	CPY		#1
 	BNE		dontSpawnPoint
-	LDA		#POINTSYM			;ADD IMPLEMENTATION FOR DIFFERENT ITEMS
+	LDA		#POINTSYM
 	STA		ITEM1SYM,X
 	JMP		randomizeDirection
 dontSpawnPoint:
@@ -1687,7 +1686,6 @@ dontSpawnPoint:
 	STA		ITEM1SYM,X
 	JMP		randomizeDirection
 dontSpawnEnemy:
-;	JMP		spawnNextItem
 	JSR		randomizer
 	CMP		#210				;DECREASE FOR INCREASE SPAWN CHANCES
 	BCS		spawnPowerUpDn		; OF POWERUP/DNS
@@ -1778,11 +1776,11 @@ spawnNextItem:
 doneSpawning:
 	RTS
 
-	;-------------------------------------------------------------------------------
-	;MOD BY 3
-	;PURPOSE: FINDS THE REMAINDER OF A NUMBER DIVIDED BY 3
-	;USAGE: LDA	#<NUMBER>
-	;		JSR	modBy4
+;-------------------------------------------------------------------------------
+;MOD BY 4
+;PURPOSE: FINDS THE REMAINDER OF A NUMBER DIVIDED BY 4
+;USAGE: LDA	#<NUMBER>
+;		JSR	modBy4
 modBy4:
 divideBy4:
 	SEC
@@ -1792,11 +1790,11 @@ findRemainder4:
 	CLC
 	ADC		#4
 	RTS
-	;-------------------------------------------------------------------------------
-	;MOD BY 22
-	;PURPOSE: FINDS THE REMAINDER OF A NUMBER DIVIDED BY 22
-	;USAGE: LDA	#<NUMBER>
-	;		JSR	modBy22
+;-------------------------------------------------------------------------------
+;MOD BY 22
+;PURPOSE: FINDS THE REMAINDER OF A NUMBER DIVIDED BY 22
+;USAGE: LDA	#<NUMBER>
+;		JSR	modBy22
 modBy22:
 divideBy22:
 	SEC
