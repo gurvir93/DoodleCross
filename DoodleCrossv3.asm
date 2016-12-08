@@ -23,6 +23,7 @@ WHITE		.equ	$01
 RED			.equ	$02
 GREEN		.equ	$05
 SNDCH1		.equ	$900A		; Memory location for sound channel 1
+SNDCHNS		.equ	$900D		; Memory location for noise channel
 SNDVOL		.equ	$900E		; Memory location for system sound volume, 
 							;  must be set to hear sound -- 0-15 volume levels.
 
@@ -44,6 +45,7 @@ STARTGAME	.equ	$1D5A
 PLAYERCOUNT	.equ	$1D5B
 PLAYERSPEED .equ	$1D5C
 SOUNDSWITCH	.equ	$1D5D
+NOISESWITCH	.equ	$1D5E
 
 MAXSCREENX  .equ	#21
 MAXSCREENY	.equ	#22
@@ -621,6 +623,7 @@ startGameInstance:
 ; ============================= Main Game Loop =============================
 gameLoop:
 	JSR		checksound
+	JSR		checknoise
 	LDA		GAMECOUNTER
 	CMP		GAMESPEED
 	BNE		gameLoopSkipItems
@@ -1246,7 +1249,8 @@ collisionEnemy:
 	LDA		NUMOFLIVES
 	CMP		#0
 	BEQ		gameOver
-
+	JSR		hitEnemySFX
+	
 	JMP		endCollisionDetection
 collisionPowerUp:
 	JSR		powerUp
@@ -1703,13 +1707,20 @@ dontPlot:
 	JMP		plotItemLoop
 	RTS
 	
-playsfx:
-	LDY 	sound
+collectPointSFX:
+	LDY 	collectSFX
 	STY		SNDCH1
 	LDA		#150
 	STA		SOUNDSWITCH
 	RTS
 
+hitEnemySFX:
+	LDY		hitSFX
+	STY		SNDCHNS
+	LDA		#255
+	STA		NOISESWITCH
+	RTS
+	
 checksound:
 	LDX		SOUNDSWITCH
 	DEX
@@ -1718,16 +1729,29 @@ checksound:
 	BEQ		turnOffSound
 	RTS
 	
+checknoise:
+	LDX		NOISESWITCH
+	DEX
+	STX		NOISESWITCH
+	CPX		#0
+	BEQ		turnOffNoise
+	RTS	
+	
 turnOffSound:
 	LDY		#0
 	STY		SNDCH1
 	RTS
-
+	
+turnOffNoise:
+	LDY		#0
+	STY		SNDCHNS
+	RTS
+	
 ; ============================= Incrementing Score =============================
 ; 	Uses - x |
 ; ------------
 incScore:
-	JSR		playsfx	
+	JSR		collectPointSFX
 	LDX		SCOREONES
 	CPX		#9
 	BEQ		incScoreTens
@@ -1986,8 +2010,11 @@ score:
 gameovertext:
 	.byte	"GAME OVER"					;9
 
-sound: 
+collectSFX: 
 	.byte	$E1,$E4,$E7,$E8,$EB,$ED,$EF,$F0,$EE,$E3
+
+hitSFX:
+	.byte	$D1,$E0,$27,$A8,$EB,$DD,$4F,$F1,$9E,$C1
 	
 .seed        
 	DC.B	$33				; Initial seed value -- new values also stored in same location
