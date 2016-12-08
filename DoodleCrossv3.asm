@@ -53,12 +53,12 @@ ZERO		.equ	$30		; CHR$ code for 0
 CIRCLE		.equ	$51		; CHR$ code for circle
 SPACE		.equ	$20		; CHR$ code for space
 ONE			.equ	$31
-TWO			.equ	$32
+THREE		.equ	$33
 
 ENEMYSYM	.equ	$66		; Weird square
 POINTSYM	.equ	$5A		; Diamond
-POWERUPSYM	.equ	$53		;$41		; Spade
-POWERDNSYM	.equ	$41		;$56		; X
+POWERUPSYM	.equ	$53		; $41		; Spade
+POWERDNSYM	.equ	$41		; $56		; X
 LIFESYM		.equ	$53		; Heart
 
 PLAYERINFX	.equ	#14
@@ -287,8 +287,8 @@ main:
 startInitialization:
 	LDA		#8				; POKE 36879,8
 	STA		$900F
-	LDX		#15			; Set x=15
-	STX		SNDVOL		; Set sound volume to 15
+	LDX		#15				; Set x=15
+	STX		SNDVOL			; Set sound volume to 15
 	LDX		#0
 	LDA		#0
 	STA		SOUNDSWITCH
@@ -315,56 +315,6 @@ setArrayAttributes:
 	LDA		#11				; Middle of screen
 	STA		PLAYERX
 	STA		PLAYERY
-
-;	LDA		#POINTSYM
-;	STA		ITEM1SYM
-;	LDA		#3
-;	STA		ITEM1X
-;	STA		ITEM1Y
-;	LDA		#DIRDOWN
-;	STA		ITEM1DIR
-
-;	LDA		#ENEMYSYM
-;	STA		ITEM8SYM
-;	LDA		#6
-;	STA		ITEM8X
-;	STA		ITEM8Y
-;	LDA		#DIRRIGHT
-;	STA		ITEM8DIR
-	
-;	LDA		#LIFESYM
-;	STA		ITEM15SYM
-;	LDA		#0
-;	STA		ITEM15X
-;	LDA		#1
-;	STA		ITEM15Y
-;	LDA		#DIRRIGHT
-;	STA		ITEM15DIR
-
-;	LDA		#POINTSYM
-;	STA		ITEM2SYM
-;	LDA		#20
-;	STA		ITEM2X
-;	STA		ITEM2Y
-;	LDA		#DIRLEFT
-;	STA		ITEM2DIR
-
-;	LDA		#POWERUPSYM
-;	STA		ITEM3SYM
-;	LDA		#15
-;	STA		ITEM3X
-;	STA		ITEM3Y
-;	LDA		#DIRUP
-;	STA		ITEM3DIR
-
-;	LDA		#POWERDNSYM
-;	STA		ITEM4SYM
-;	LDA		#6
-;	STA		ITEM4X
-;	LDA		#21
-;	STA		ITEM4Y
-;	LDA		#DIRUP
-;	STA		ITEM4DIR
 
 ; ======================= Main Menu/Splash Screen =======================
 initSplashScreen:
@@ -424,7 +374,7 @@ checkSelection:
 	JSR		GETIN				; get character from keyboard
 	CMP		#ONE
 	BEQ		jumpToStart			; go to first selection - start game
-	CMP		#TWO
+	CMP		#THREE
 	BEQ		instructionScreen	; go to second selection - display instructions
 	LDX		STARTGAME
 	CPX		#0
@@ -680,7 +630,6 @@ notRight:
 doneInput:
 	RTS
 
-
 moveRight:
 	LDX		PLAYERX
 	CPX		#MAXSCREENX
@@ -713,7 +662,6 @@ moveLeft:
 
 	LDA		PLAYERSYM
 	JSR		plotPosition
-
 
 	JMP 	donePlayerMove
 
@@ -788,18 +736,16 @@ initializeColourPosition:
 	BEQ		colourCase1
 	CPY		#12
 	BCS		colourCase2				;CHECK IF Y IS >= 12
-;	LDY		#0
+
 colourBaseCase:
 	LDA		#00
 	STA		$04
-;	STX		$00		
 	LDA		#$96	
 	STA		$05
 	LDY		#0
 	LDA		$04
 
 colourYLoop:
-	
 	CPY		$07
 	BEQ		colourPositionDone
 	INY
@@ -808,11 +754,12 @@ colourYLoop:
 	ADC		#22
 	STA		$04
 	JMP		colourYLoop
+	
 colourCase1:
 	CLC
 	CPX		#14
 	BCC		colourBaseCase
-;	JMP		BASECASE
+	
 handleColourCase1:
 	LDA		#$97
 	STA		$05
@@ -835,7 +782,6 @@ colourCase2:
 	LDY		#0
 	JMP		colourYLoop
 colourPositionDone:
-;	STA		$00
 	TXA
 	CLC
 	ADC		$04
@@ -862,51 +808,6 @@ loadState:
 	LDA		ASTORAGE
 	RTS
 ; ================================
-colourEverything:
-	LDA		#0
-	STA		COUNTER
-colourEverythingLoop:
-	LDY		COUNTER
-	LDA		ITEM1SYM,Y
-	CMP		#0
-	BEQ		colouredItem
-	INY							;MOVE TO X POSITION OF ITEM
-
-;	LDY		COUNTER			
-	LDX		ITEM1SYM,Y		
-	INY							;MOVE TO Y POSITION OF ITEM
-	LDA		ITEM1SYM,Y
-	TAY
-	JSR		findColourPosition	;FIND POSITION ON SCREEN
-
-	LDY		COUNTER
-	LDA		ITEM1SYM,Y
-	CMP		#CIRCLE
-
-	BNE		colourItems
-	LDA		#WHITE
-	JSR		plotColour
-	JMP		colouredItem
-colourItems:
-
-	CMP		#POINTSYM
-	BNE		colourBad
-	LDA		#GREEN
-	JSR		plotColour
-	JMP		colouredItem
-colourBad:
-	CMP		#ENEMYSYM
-;	BNE		COLOURPOWERUP
-colouredItem:
-	INC		COUNTER
-	INC		COUNTER
-	INC		COUNTER
-	INC		COUNTER
-	LDA		COUNTER
-	CMP		#$40
-	BNE		colourEverythingLoop
-	RTS
-
 colourPlayer:
 	LDX		PLAYERX
 	LDY		PLAYERY
@@ -997,16 +898,12 @@ moveItemsRight:
 	LDX		ITEM1SYM,Y		; Load current position
 	CPX		#MAXSCREENX	
 	BNE		movingItemRight
-;	BCS		offScreenX		; If x-axis position is >= 1 position more than max screen x
 	JMP		offScreenX
 movingItemRight:
 	INY
 	LDA		ITEM1SYM,Y
 	TAY
 	JSR		storeState
-;	JSR		findScreenPosition
-;	LDA		#CIRCLE
-;	JSR		plotPosition
 	JSR		clearPosition
 	JSR		loadState
 	LDY		COUNTER
@@ -1020,13 +917,10 @@ movingItemRight:
 	JSR		storeState
 	JSR		findScreenPosition
 	LDY		COUNTER
-;	INY
 	LDA		ITEM1SYM,Y
 	JSR		plotPosition
 	JSR		colourCurrent
 	LDY		COUNTER
-;	INY
-;	INY
 	INY
 	INY						; Move to item Y-axis position
 
@@ -1036,7 +930,6 @@ moveItemsDown:
 	DEY						; Move to item Y-axis position
 	LDX		ITEM1SYM,Y		; Load current position
 	CPX		#MAXSCREENY	
-;	BCS		offScreenY		; If y-axis position is >= 1 position more than max screen x
 	BNE		movingItemDown
 	JMP		offScreenY
 movingItemDown:
@@ -1047,9 +940,6 @@ movingItemDown:
 	LDA		ITEM1SYM,Y
 	TAY
 	JSR		storeState
-;	JSR	findScreenPosition
-;	LDA		#CIRCLE
-;	JSR	plotPosition
 	JSR		clearPosition
 	JSR		loadState
 
@@ -1072,8 +962,6 @@ movingItemDown:
 	JSR		plotPosition
 	JSR		colourCurrent
 
-		
-
 	LDY		COUNTER
 	INY
 	INY
@@ -1085,24 +973,15 @@ moveItemsLeft:
 	LDX		ITEM1SYM,Y		; Load current position
 	CPX		#1	
 	BCC		offScreenX		; If x-axis position is < 1 position more than minimum screen
-;	BNE		movingItemLeft
-;	JMP		offScreenX
-;movingItemLeft:
 
 	INY
 	LDA		ITEM1SYM,Y
 	TAY
 	JSR		storeState
-;	JSR		findScreenPosition
-;	LDA	#CIRCLE
-;	JSR	plotPosition
 	JSR		clearPosition
 	JSR		loadState
-;	TYA
-;	TAX
 	LDY		COUNTER
 	INY
-;	INY			
 	DEX						; Increase position by 1
 	TXA
 	STA		ITEM1SYM,Y		; Store value back into memory
@@ -1496,9 +1375,6 @@ increaseItemSpeed:
 
 	JMP 	afterPower
 
-
-
-
 ; ============================= End Item Power Up/Down's =============================
 
 ; ============================= Start Random Generator =============================
@@ -1520,12 +1396,6 @@ refreshScreenStart:
 refreshScreenScore:
 	JSR		plotCurrentLives
 	JSR		plotCurrentScore
-
-refreshScreen:
-;	JSR		clearPlayField
-;	JSR		plotItem
-	;JSR		delay
-
 	RTS
 
 printLivesText:
@@ -1542,7 +1412,6 @@ printLivesTextLoop:
 	CPX		#6					; Compare x with the length of string going to be outputted
 	BNE		printLivesTextLoop	; If not equal, branch to loop
 	RTS
-	
 
 plotCurrentLives:
 	LDA		#0
@@ -1938,7 +1807,6 @@ divideBy22:
 findRemainder22:
 	CLC
 	ADC		#22
-;	STA		$1D00
 	RTS
 
 ;-------------------------------------------------------------------------------
@@ -1949,14 +1817,12 @@ findRemainder22:
 
 clearPlayField:
 	LDX		#00
-;	CLC
 clearLoop1:
 	LDA		#SPACE
 	STA		$1E16,X
 	INX
 	CPX		#255
 	BNE		clearLoop1
-;	BCC		clearLoop1
 	LDX		#00
 clearLoop2:
 	LDA		#SPACE
@@ -1998,7 +1864,7 @@ powerdowns:
 optionOne:
 	.byte	"1 - PLAY GAME"				;13
 optionTwo:
-	.byte	"2 - HOW TO PLAY"			;15
+	.byte	"3 - HOW TO PLAY"			;15
 select:
 	.byte	"SELECT AN ACTION..."		;19
 welcome:
